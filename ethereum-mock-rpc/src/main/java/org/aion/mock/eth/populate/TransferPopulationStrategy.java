@@ -24,7 +24,7 @@ public abstract class TransferPopulationStrategy extends PopulationStrategy {
         super(state);
         this.transferEventList = transferEventList;
     }
-    
+
     protected PostTransactionExecution execute(TransferEvent event) {
         var payload = new AbiEncoder(BURN_SIGNATURE, new Bytes32FVM(
                 new ByteArrayWrapper(event.recipient)),

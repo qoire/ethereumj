@@ -1,0 +1,22 @@
+// all the following fields are required, even if null
+{
+  // the number to start at
+  "startNumber": 0,
+  // blockchain will stop after this number
+  "endNumber": 100,
+  // transfers, and which block number they're included in
+  "transfers": [
+    // the full request, a to address (recipient), and the amount to send
+    {"from": "0xc0ffee254729296a45a3885639AC7E10F9d54979", "to": "0xe51054c47678f163cd7717007e28d3751e5e854a18887adcdc62b5b8c4bbec7f", "amount": 100, "block": 50},
+    // reduced, this will let the mock fill in the from and to (deterministic)
+    {"amount": 150, "block": 51}
+  ],
+  // mode, determines whether the blockchain is: static, ticking, manual
+  "mode": {
+    // static blockchain indicates that the blockchain is already at some predetermined height
+    // and is not generating any more, useful for trying out syncing situations
+    "name": "static"
+  },
+  // special rules, applies special rules (ex. forking logic)
+  "special": null,
+}

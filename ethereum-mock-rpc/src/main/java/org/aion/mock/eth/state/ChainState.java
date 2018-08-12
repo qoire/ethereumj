@@ -28,7 +28,7 @@ public class ChainState {
      * to ensure (within the context of the mock that things are consistent
      * @param block
      */
-    public void addBlock(@Nonnull final Block block) {
+    public void addBlock(@Nonnull final Block block, long index) {
         checkBlock(block);
         this.blockHashMap.put(new ByteArrayWrapper(block.getHash()), block);
 
@@ -48,7 +48,7 @@ public class ChainState {
         return this.blockNumberMap.get(blockNumber).get(chainIndex);
     }
 
-    public void checkBlock(@Nonnull final Block block) {
+    protected void checkBlock(@Nonnull final Block block) {
         assert block.getParentHash() != null;
 
         if (!blockHashMap.isEmpty())
@@ -63,6 +63,11 @@ public class ChainState {
         assert block.getLogBloom() != null;
         assert block.getTransactionsList() != null;
         assert block.getTimestamp() > blockHashMap.get(wrap(block.getParentHash())).getTimestamp();
+    }
+
+    protected void insertBlockNumber(@Nonnull final Block block, long index) {
+        if (this.blockNumberMap.get(index) == null && index != 0)
+            throw new RuntimeException("")
     }
 
     private static ByteArrayWrapper wrap(@Nonnull final byte[] input) {
