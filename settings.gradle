@@ -1,0 +1,3 @@
+rootProject.name = 'mock-rpc-server'
+include 'ethereumj-core'
+include 'ethereum-mock-rpc'

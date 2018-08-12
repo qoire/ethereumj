@@ -60,39 +60,39 @@ public class Transaction {
     public static final int ADDRESS_LENGTH = 20;
 
     /* SHA3 hash of the RLP encoded transaction */
-    private byte[] hash;
+    protected byte[] hash;
 
     /* a counter used to make sure each transaction can only be processed once */
-    private byte[] nonce;
+    protected byte[] nonce;
 
     /* the amount of ether to transfer (calculated as wei) */
-    private byte[] value;
+    protected byte[] value;
 
     /* the address of the destination account
      * In creation transaction the receive address is - 0 */
-    private byte[] receiveAddress;
+    protected byte[] receiveAddress;
 
     /* the amount of ether to pay as a transaction fee
      * to the miner for each unit of gas */
-    private byte[] gasPrice;
+    protected byte[] gasPrice;
 
     /* the amount of "gas" to allow for the computation.
      * Gas is the fuel of the computational engine;
      * every computational step taken and every byte added
      * to the state or transaction list consumes some gas. */
-    private byte[] gasLimit;
+    protected byte[] gasLimit;
 
     /* An unlimited size byte array specifying
      * input [data] of the message call or
      * Initialization code for a new contract */
-    private byte[] data;
+    protected byte[] data;
 
     /**
      * Since EIP-155, we could encode chainId in V
      */
     private static final int CHAIN_ID_INC = 35;
     private static final int LOWER_REAL_V = 27;
-    private Integer chainId = null;
+    protected Integer chainId = null;
 
     /* the elliptic curve signature
      * (including public key recovery bits) */
