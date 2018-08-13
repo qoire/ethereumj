@@ -21,7 +21,7 @@ import org.ethereum.core.TransactionReceipt;
  * of the world.
  *
  */
-public abstract class ChainFacade {
+public interface ChainFacade {
 
     public Block getBlockByNumber(long number);
 
@@ -32,6 +32,4 @@ public abstract class ChainFacade {
     public Transaction getTransactionByHash(byte[] transactionHash);
 
     public TransactionReceipt getTransactionReceiptByHash(byte[] transactionHash);
-
-    public abstract Block
 }

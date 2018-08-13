@@ -4,57 +4,53 @@ import org.aion.abi.AbiEncoder;
 import org.aion.abi.Bytes32FVM;
 import org.aion.abi.Uint256FVM;
 import org.aion.mock.eth.core.MockTransaction;
+import org.aion.mock.eth.populate.rules.AbstractRule;
 import org.aion.mock.eth.state.ChainState;
+import org.aion.util.MockAddressGenerator;
+import org.ethereum.core.Bloom;
 import org.ethereum.core.Transaction;
 import org.ethereum.core.TransactionReceipt;
 import org.ethereum.db.ByteArrayWrapper;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Properties;
 
-public abstract class TransferPopulationStrategy extends PopulationStrategy {
+import static org.aion.util.MockAddressGenerator.getEthereumAddress;
 
-    protected static final String BURN_SIGNATURE = "burn(bytes32,uint256)";
+public class TransferPopulationStrategy extends PopulationStrategy {
 
-    protected final List<TransferEvent> transferEventList;
+    protected final List<ExecutionUtilities.TransferEvent> transferEventList;
+    protected final List<AbstractRule> specialRules;
 
     public TransferPopulationStrategy(@Nonnull final ChainState state,
-                                      @Nonnull final List<TransferEvent> transferEventList) {
+                                      @Nonnull final List<ExecutionUtilities.TransferEvent> transferEventList,
+                                      @Nonnull final List<AbstractRule> specialRules) {
         super(state);
         this.transferEventList = transferEventList;
+        this.specialRules = specialRules;
     }
 
-    protected PostTransactionExecution execute(TransferEvent event) {
-        var payload = new AbiEncoder(BURN_SIGNATURE, new Bytes32FVM(
-                new ByteArrayWrapper(event.recipient)),
-                new Uint256FVM(new ByteArrayWrapper(event.amount.toByteArray()))
-        ).encodeBytes();
-        var transaction = new MockTransaction();
+    protected void populate() {
+
     }
 
-    public static class TransferEvent {
-        public final byte[] recipient;
-        public final BigInteger amount;
-        public final long blockNumber;
-
-        public TransferEvent(@Nonnull final byte[] recipient,
-                             @Nonnull final BigInteger amount,
-                             @Nonnull final long blockNumber) {
-            this.recipient = recipient;
-            this.amount = amount;
-            this.blockNumber = blockNumber;
+    @Override
+    public void populateInitialInternal() {
+        populate();
+        // special rules are run after the standard state is built
+        for (AbstractRule rule : specialRules) {
+            rule.apply(this.state);
         }
     }
 
-    protected static class PostTransactionExecution {
-        public final Transaction transaction;
-        public final TransactionReceipt receipt;
-
-        public PostTransactionExecution(@Nonnull final Transaction transaction,
-                                        @Nonnull final TransactionReceipt receipt) {
-            this.transaction = transaction;
-            this.receipt = receipt;
+    @Override
+    public void populateStep(Properties props) {
+        // by default, the strategy does not have any default behaviour
+        for (AbstractRule rule : specialRules) {
+            rule.applyStep(this.state);
         }
     }
 }

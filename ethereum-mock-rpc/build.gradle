@@ -21,6 +21,17 @@ dependencies {
     // This dependency is found on compile classpath of this component and consumers.
     compile 'com.google.guava:guava:23.0'
 
+    compile 'javax.xml.bind:jaxb-api:2.2.11'
+    compile 'com.sun.xml.bind:jaxb-core:2.2.11'
+    compile 'com.sun.xml.bind:jaxb-impl:2.2.11'
+    compile 'javax.xml.ws:jaxws-api:2.2.11'
+
+    compile "com.github.briandilley.jsonrpc4j:jsonrpc4j:1.5.3"
+    compile group: 'org.projectlombok', name: 'lombok', version: '1.18.2'
+    compile group: 'com.madgag.spongycastle', name: 'core', version: '1.58.0.0'
+
+    compile project(":ethereumj-core")
+
     // Use JUnit test framework
     testCompile 'junit:junit:4.12'
 }

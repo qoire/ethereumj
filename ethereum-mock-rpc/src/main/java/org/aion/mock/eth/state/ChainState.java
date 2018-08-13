@@ -21,15 +21,27 @@ public class ChainState {
 
     private Map<ByteArrayWrapper, TransactionReceipt> receiptMap = new HashMap<>();
 
+    // swaps between different block indices, used to switch between forks
     private int chainIndex = 0;
+
+    // best public block number, visible to the user
+    private long headBlockNumber = 0L;
+
+    // best block number of the chain
+    private long chainBlockNumber = 0L;
 
     /**
      * Adds a new block into the chain state, some simple verification checks
      * to ensure (within the context of the mock that things are consistent
      * @param block
      */
-    public void addBlock(@Nonnull final Block block, long index) {
+    public void addBlock(@Nonnull final Block block, List<TransactionReceipt> receipt, long index) {
         checkBlock(block);
+
+        if (this.blockHashMap.isEmpty()) {
+            chainBlockNumber = block.getNumber();
+        }
+
         this.blockHashMap.put(new ByteArrayWrapper(block.getHash()), block);
 
         for (Transaction tx : block.getTransactionsList()) {
@@ -43,9 +55,32 @@ public class ChainState {
 
     public Block getBlock(long blockNumber) {
         if (chainIndex > this.blockNumberMap.get(blockNumber).size() - 1)
-            throw new RuntimeException("tried to execute getBlock on non-existent chainIndex: " + chainIndex);
-
+            throw new RuntimeException("tried to executeTransferPayload getBlock on non-existent chainIndex: " + chainIndex);
         return this.blockNumberMap.get(blockNumber).get(chainIndex);
+    }
+
+    public int getChainIndex() {
+        return chainIndex;
+    }
+
+    public void setChainIndex(int chainIndex) {
+        this.chainIndex = chainIndex;
+    }
+
+    public long getHeadBlockNumber() {
+        return headBlockNumber;
+    }
+
+    public void setHeadBlockNumber(long headBlockNumber) {
+        this.headBlockNumber = headBlockNumber;
+    }
+
+    public long getChainBlockNumber() {
+        return chainBlockNumber;
+    }
+
+    public void setChainBlockNumber(long chainBlockNumber) {
+        this.chainBlockNumber = chainBlockNumber;
     }
 
     protected void checkBlock(@Nonnull final Block block) {
@@ -67,7 +102,7 @@ public class ChainState {
 
     protected void insertBlockNumber(@Nonnull final Block block, long index) {
         if (this.blockNumberMap.get(index) == null && index != 0)
-            throw new RuntimeException("")
+            throw new RuntimeException("cannot throw block number");
     }
 
     private static ByteArrayWrapper wrap(@Nonnull final byte[] input) {
