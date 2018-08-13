@@ -1,6 +1,8 @@
 package org.aion.mock.rpc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.jsonrpc4j.JsonRpcServer;
+import org.aion.mock.eth.ChainFacade;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -11,8 +13,13 @@ import java.io.IOException;
 
 public class HttpJsonRpcServlet extends HttpServlet {
 
+    private ChainFacade chainFacade;
     private EthJsonRpcImpl ethJsonRpcImpl;
     private JsonRpcServer jsonRpcServer;
+
+    public HttpJsonRpcServlet(ChainFacade chainFacade) {
+        this.chainFacade = chainFacade;
+    }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -21,7 +28,7 @@ public class HttpJsonRpcServlet extends HttpServlet {
 
     @Override
     public void init(ServletConfig config) {
-        this.ethJsonRpcImpl = (EthJsonRpcImpl) getServletContext().getAttribute("ethJsonRpcImpl");
-        this.jsonRpcServer = new JsonRpcServer(this.ethJsonRpcImpl, EthJsonRpcImpl.class);
+        this.ethJsonRpcImpl = new EthJsonRpcImpl(this.chainFacade);
+        this.jsonRpcServer = new JsonRpcServer(new ObjectMapper(), this.ethJsonRpcImpl, EthJsonRpcImpl.class);
     }
 }

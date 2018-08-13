@@ -1,5 +1,6 @@
 package org.aion.mock.eth.populate;
 
+import lombok.Data;
 import org.aion.mock.eth.core.MockTransaction;
 import org.ethereum.core.Transaction;
 import org.ethereum.core.TransactionReceipt;
@@ -25,10 +26,9 @@ public class ExecutionUtilities {
 
     protected static final byte[] EMPTY = new byte[0];
 
-    public PostTransactionExecution executeTransferPayload(@Nonnull final byte[] contractAddress,
-                                                           @Nonnull final List<TransferEvent> events,
-                                                           @Nonnull final byte[] blockHash,
-                                                           @Nullable byte[] from) {
+    public static PostTransactionExecution executeTransferPayload(@Nonnull final byte[] contractAddress,
+                                                                  @Nonnull final List<TransferEvent> events,
+                                                                  @Nullable byte[] from) {
         from = from == null ? getEthereumAddress() : from;
         var transaction = new MockTransaction(EMPTY,
                 EMPTY,
@@ -43,7 +43,7 @@ public class ExecutionUtilities {
         return new PostTransactionExecution(transaction, transactionReceipt);
     }
 
-    public TransactionReceipt createReceipt(@Nonnull final byte[] contractAddress,
+    public static TransactionReceipt createReceipt(@Nonnull final byte[] contractAddress,
                                             @Nonnull final Transaction transaction,
                                             @Nonnull final List<TransferEvent> events) {
         var receipt = new TransactionReceipt();
@@ -70,28 +70,16 @@ public class ExecutionUtilities {
         return receipt;
     }
 
+    @Data
     public static class TransferEvent {
         public final byte[] recipient;
         public final BigInteger amount;
         public final long blockNumber;
-
-        public TransferEvent(@Nonnull final byte[] recipient,
-                             @Nonnull final BigInteger amount,
-                             @Nonnull final long blockNumber) {
-            this.recipient = recipient;
-            this.amount = amount;
-            this.blockNumber = blockNumber;
-        }
     }
 
-    protected static class PostTransactionExecution {
+    @Data
+    public static class PostTransactionExecution {
         public final Transaction transaction;
         public final TransactionReceipt receipt;
-
-        public PostTransactionExecution(@Nonnull final Transaction transaction,
-                                        @Nonnull final TransactionReceipt receipt) {
-            this.transaction = transaction;
-            this.receipt = receipt;
-        }
     }
 }

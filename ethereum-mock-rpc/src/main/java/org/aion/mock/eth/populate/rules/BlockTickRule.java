@@ -1,8 +1,12 @@
 package org.aion.mock.eth.populate.rules;
 
+import org.aion.mock.eth.core.BlockConstructor;
 import org.aion.mock.eth.state.ChainState;
+import org.ethereum.core.Block;
+import org.ethereum.core.TransactionInfo;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
 public class BlockTickRule extends AbstractRule {
 
@@ -22,8 +26,8 @@ public class BlockTickRule extends AbstractRule {
     }
 
     @Override
-    public void apply(ChainState state) {
-        // do nothing, this rule is only for ticking the block number up
+    public void build(@Nonnull final Block block, List<TransactionInfo> infos) {
+        
     }
 
     @Override

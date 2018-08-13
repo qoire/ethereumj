@@ -66,7 +66,8 @@ public class Block {
 
     /* Constructors */
 
-    protected Block() {
+    public Block() {
+
     }
 
     public Block(byte[] rawData) {
@@ -160,6 +161,12 @@ public class Block {
             this.uncleList.add(blockData);
         }
         this.parsed = true;
+    }
+
+    public void updateTransactionContents(List<Transaction> transactionsList, byte[] txTrieRoot, byte[] txReceiptRoot) {
+        this.transactionsList = transactionsList;
+        this.header.setTransactionsRoot(txTrieRoot);
+        this.header.setReceiptsRoot(txReceiptRoot);
     }
 
     public BlockHeader getHeader() {

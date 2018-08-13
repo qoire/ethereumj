@@ -1,16 +1,16 @@
 package org.aion.mock.eth.state;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.ethereum.core.Block;
 import org.ethereum.core.TransactionInfo;
 import org.ethereum.db.ByteArrayWrapper;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
+@Slf4j
 public class ChainState {
 
     private Map<ByteArrayWrapper, Block> blockHashMap = new HashMap<>();
@@ -28,7 +28,6 @@ public class ChainState {
     // best block number of the chain
     private long chainBlockNumber = 0L;
 
-
     // TODO: mock, there is a better locking strategy, implement later
 
     /**
@@ -38,10 +37,16 @@ public class ChainState {
     public synchronized void addBlock(@Nonnull final Block block, List<TransactionInfo> infos, long index) {
         checkBlock(block);
 
+        log.debug("block added to state: " + block.toFlatString());
+
         if (this.blockHashMap.isEmpty()) {
             chainBlockNumber = block.getNumber();
         }
         this.blockHashMap.put(new ByteArrayWrapper(block.getHash()), block);
+
+        if (this.blockNumberMap.get(block.getNumber()) == null) {
+            this.blockNumberMap.put(block.getNumber(), Arrays.asList(block));
+        }
 
         // places block into
 
@@ -56,8 +61,8 @@ public class ChainState {
     }
 
     public synchronized Block getBlock(long blockNumber) {
-        if (chainIndex > this.blockNumberMap.get(blockNumber).size() - 1)
-            throw new RuntimeException("tried to executeTransferPayload getBlock on non-existent chainIndex: " + chainIndex);
+        if (blockNumber > this.headBlockNumber)
+            return null;
         return this.blockNumberMap.get(blockNumber).get(chainIndex);
     }
 

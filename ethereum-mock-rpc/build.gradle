@@ -47,6 +47,7 @@ dependencies {
     // jetty, embedded servlet
     compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.12.RC1'
     compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '9.4.12.RC1'
+    compile group: 'javax.portlet', name: 'portlet-api', version: '3.0.1'
 
     compile project(":ethereumj-core")
 
