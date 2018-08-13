@@ -2,6 +2,7 @@ package org.aion.mock.eth;
 
 import org.ethereum.core.Block;
 import org.ethereum.core.Transaction;
+import org.ethereum.core.TransactionInfo;
 import org.ethereum.core.TransactionReceipt;
 
 /**
@@ -32,4 +33,8 @@ public interface ChainFacade {
     public Transaction getTransactionByHash(byte[] transactionHash);
 
     public TransactionReceipt getTransactionReceiptByHash(byte[] transactionHash);
+
+    public TransactionInfo getTransactionInfo(byte[] transactionHash);
+
+    public Block getBestBlock();
 }

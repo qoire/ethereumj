@@ -18,29 +18,17 @@
 
 package org.aion.mock.rpc;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import lombok.NonNull;
-import org.apache.commons.collections4.map.LRUMap;
+import org.aion.mock.eth.ChainFacade;
 import org.ethereum.core.*;
 import org.ethereum.crypto.ECKey;
 import org.ethereum.crypto.HashUtil;
 import org.ethereum.db.BlockStore;
-import org.ethereum.db.ByteArrayWrapper;
-import org.ethereum.mine.MinerIfc;
-import org.ethereum.mine.MinerListener;
 import org.ethereum.solidity.compiler.CompilationResult;
-import org.ethereum.util.BuildInfo;
 import org.ethereum.util.ByteUtil;
-import org.ethereum.vm.DataWord;
 
 import java.lang.reflect.Modifier;
-import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.aion.mock.rpc.TypeConverter.*;
@@ -54,78 +42,15 @@ public class EthJsonRpcImpl implements JsonRpc {
 
     private static final String BLOCK_LATEST = "latest";
 
-    public class BinaryCallArguments {
-        public long nonce;
-        public long gasPrice;
-        public long gasLimit;
-        public String toAddress;
-        public String fromAddress;
-        public long value;
-        public byte[] data;
-        public void setArguments(CallArguments args) throws Exception {
-            nonce = 0;
-            if (args.nonce != null && args.nonce.length() != 0)
-                nonce = jsonHexToLong(args.nonce);
+    private final ChainFacade chain;
 
-            gasPrice = 0;
-            if (args.gasPrice != null && args.gasPrice.length()!=0)
-                gasPrice = jsonHexToLong(args.gasPrice);
-
-            gasLimit = 4_000_000;
-            if (args.gas != null && args.gas.length()!=0)
-                gasLimit = jsonHexToLong(args.gas);
-
-            toAddress = null;
-            if (args.to != null && !args.to.isEmpty())
-                toAddress = jsonHexToHex(args.to);
-
-            fromAddress = null;
-            if (args.from != null && !args.from.isEmpty())
-                fromAddress = jsonHexToHex(args.from);
-
-            value=0;
-            if (args.value != null && args.value.length()!=0)
-                value = jsonHexToLong(args.value);
-
-            data = null;
-
-            if (args.data != null && args.data.length()!=0)
-                data = hexToByteArray(args.data);
-        }
+    public EthJsonRpcImpl(ChainFacade chain) {
+        this.chain = chain;
     }
+
     /**
      * State fields
      */
-    protected volatile long initialBlockNumber;
-
-    AtomicInteger filterCounter = new AtomicInteger(1);
-    Map<Integer, Filter> installedFilters = new Hashtable<>();
-    Map<ByteArrayWrapper, TransactionReceipt> pendingReceipts = Collections.synchronizedMap(new LRUMap<>(1024));
-
-    Map<ByteArrayWrapper, Block> miningBlocks = new ConcurrentHashMap<>();
-
-    volatile Block miningBlock;
-
-    volatile SettableFuture<MinerIfc.MiningResult> miningTask;
-
-    final MinerIfc externalMiner = new MinerIfc() {
-        @Override
-        public ListenableFuture<MiningResult> mine(Block block) {
-            miningBlock = block;
-            miningTask = SettableFuture.create();
-            return miningTask;
-        }
-
-        @Override
-        public boolean validate(BlockHeader blockHeader) {
-            return false;
-        }
-
-        @Override
-        public void setListeners(Collection<MinerListener> listeners) {}
-    };
-
-    boolean minerInitialized = false;
 
     private long jsonHexToLong(String x) throws Exception {
         if (!x.startsWith("0x"))
@@ -150,38 +75,26 @@ public class EthJsonRpcImpl implements JsonRpc {
 
     private Block getBlockByJSonHash(String blockHash) throws Exception {
         byte[] bhash = hexToByteArray(blockHash);
-        return worldManager.getBlockchain().getBlockByHash(bhash);
+        return this.chain.getBlockByHash(bhash);
     }
 
     private Block getByJsonBlockId(String id) {
         if ("earliest".equalsIgnoreCase(id)) {
-            return blockchain.getBlockByNumber(0);
+            return chain.getBlockByNumber(0);
         } else if ("latest".equalsIgnoreCase(id)) {
-            return blockchain.getBestBlock();
+            return chain.getBestBlock();
         } else if ("pending".equalsIgnoreCase(id)) {
             return null;
         } else {
             long blockNumber = hexToBigInteger(id).longValue();
-            return blockchain.getBlockByNumber(blockNumber);
+            return chain.getBlockByNumber(blockNumber);
         }
     }
 
-    private Repository getRepoByJsonBlockId(String id) {
-        if ("pending".equalsIgnoreCase(id)) {
-            return pendingState.getRepository();
-        } else {
-            Block block = getByJsonBlockId(id);
-            return this.repository.getSnapshotTo(block.getStateRoot());
-        }
-    }
 
     private List<Transaction> getTransactionsByJsonBlockId(String id) {
-        if ("pending".equalsIgnoreCase(id)) {
-            return pendingState.getPendingTransactions();
-        } else {
-            Block block = getByJsonBlockId(id);
-            return block != null ? block.getTransactionsList() : null;
-        }
+        Block block = getByJsonBlockId(id);
+        return block != null ? block.getTransactionsList() : null;
     }
 
     public String web3_clientVersion() {
@@ -217,7 +130,7 @@ public class EthJsonRpcImpl implements JsonRpc {
     }
 
     public String eth_coinbase() {
-        throw new toJsonHex(EMPTY_BYTE_ARRAY);
+        return toJsonHex(EMPTY_BYTE_ARRAY);
     }
 
     public boolean eth_mining() {
@@ -237,16 +150,11 @@ public class EthJsonRpcImpl implements JsonRpc {
     }
 
     public String eth_blockNumber() {
-        return toJsonHex(blockchain.getBestBlock().getNumber());
+        return toJsonHex(this.chain.getBestBlock().getNumber());
     }
 
     public String eth_getBalance(String address, String blockId) throws Exception {
-        Objects.requireNonNull(address, "address is required");
-        blockId = blockId == null ? BLOCK_LATEST : blockId;
-
-        byte[] addressAsByteArray = hexToByteArray(address);
-        BigInteger balance = getRepoByJsonBlockId(blockId).getBalance(addressAsByteArray);
-        return toJsonHex(balance);
+        throw new UnsupportedOperationException();
     }
 
     public String eth_getLastBalance(String address) throws Exception {
@@ -255,31 +163,20 @@ public class EthJsonRpcImpl implements JsonRpc {
 
     @Override
     public String eth_getStorageAt(String address, String storageIdx, String blockId) throws Exception {
-        byte[] addressAsByteArray = hexToByteArray(address);
-        DataWord storageValue = getRepoByJsonBlockId(blockId).
-                getStorageValue(addressAsByteArray, new DataWord(hexToByteArray(storageIdx)));
-        return storageValue != null ? toJsonHex(storageValue.getData()) : null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String eth_getTransactionCount(String address, String blockId) throws Exception {
-        byte[] addressAsByteArray = hexToByteArray(address);
-        BigInteger nonce = getRepoByJsonBlockId(blockId).getNonce(addressAsByteArray);
-        return toJsonHex(nonce);
+        throw new UnsupportedOperationException();
     }
 
     public String eth_getBlockTransactionCountByHash(String blockHash) throws Exception {
-        Block b = getBlockByJSonHash(blockHash);
-        if (b == null) return null;
-        long n = b.getTransactionsList().size();
-        return toJsonHex(n);
+        throw new UnsupportedOperationException();
     }
 
     public String eth_getBlockTransactionCountByNumber(String bnOrId) throws Exception {
-        List<Transaction> list = getTransactionsByJsonBlockId(bnOrId);
-        if (list == null) return null;
-        long n = list.size();
-        return toJsonHex(n);
+        throw new UnsupportedOperationException();
     }
 
     public String eth_getUncleCountByBlockHash(String blockHash) throws Exception {
@@ -297,9 +194,7 @@ public class EthJsonRpcImpl implements JsonRpc {
     }
 
     public String eth_getCode(String address, String blockId) throws Exception {
-        byte[] addressAsByteArray = hexToByteArray(address);
-        byte[] code = getRepoByJsonBlockId(blockId).getCode(addressAsByteArray);
-        return toJsonHex(code);
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -357,7 +252,9 @@ public class EthJsonRpcImpl implements JsonRpc {
         br.receiptsRoot = toJsonHex(block.getReceiptsRoot());
         br.miner = isPending ? null : toJsonHex(block.getCoinbase());
         br.difficulty = toJsonHex(block.getDifficultyBI());
-        br.totalDifficulty = toJsonHex(blockStore.getTotalDifficultyForHash(block.getHash()));
+
+        // TODO: aion_mock, this needs to be changed, need to query total difficulties
+        br.totalDifficulty = toJsonHex(0);
         if (block.getExtraData() != null)
             br.extraData = toJsonHex(block.getExtraData());
         br.size = toJsonHex(block.getEncoded().length);
@@ -392,26 +289,21 @@ public class EthJsonRpcImpl implements JsonRpc {
     }
 
     public BlockResult eth_getBlockByNumber(String bnOrId, Boolean fullTransactionObjects) throws Exception {
-        final Block b;
-        if ("pending".equalsIgnoreCase(bnOrId)) {
-            b = blockchain.createNewBlock(blockchain.getBestBlock(), pendingState.getPendingTransactions(), Collections.<BlockHeader>emptyList());
-        } else {
-            b = getByJsonBlockId(bnOrId);
-        }
+        final Block b = getByJsonBlockId(bnOrId);
         return (b == null ? null : getBlockResult(b, fullTransactionObjects));
     }
 
     public TransactionResultDTO eth_getTransactionByHash(String transactionHash) throws Exception {
         final byte[] txHash = hexToByteArray(transactionHash);
 
-        final TransactionInfo txInfo = blockchain.getTransactionInfo(txHash);
+        final TransactionInfo txInfo = this.chain.getTransactionInfo(txHash);
         if (txInfo == null) {
             return null;
         }
 
-        final Block block = blockchain.getBlockByHash(txInfo.getBlockHash());
+        final Block block = this.chain.getBlockByHash(txInfo.getBlockHash());
         // need to return txes only from main chain
-        final Block mainBlock = blockchain.getBlockByNumber(block.getNumber());
+        final Block mainBlock = this.chain.getBlockByNumber(block.getNumber());
         if (!Arrays.equals(block.getHash(), mainBlock.getHash())) {
             return null;
         }
@@ -442,13 +334,13 @@ public class EthJsonRpcImpl implements JsonRpc {
     public TransactionReceiptDTO eth_getTransactionReceipt(String transactionHash) throws Exception {
         final byte[] hash = hexToByteArray(transactionHash);
 
-        final TransactionInfo txInfo = blockchain.getTransactionInfo(hash);
+        final TransactionInfo txInfo = this.chain.getTransactionInfo(hash);
 
         if (txInfo == null)
             return null;
 
-        final Block block = blockchain.getBlockByHash(txInfo.getBlockHash());
-        final Block mainBlock = blockchain.getBlockByNumber(block.getNumber());
+        final Block block = this.chain.getBlockByHash(txInfo.getBlockHash());
+        final Block mainBlock = this.chain.getBlockByNumber(block.getNumber());
 
         // need to return txes only from main chain
         if (!Arrays.equals(block.getHash(), mainBlock.getHash())) {
@@ -462,27 +354,20 @@ public class EthJsonRpcImpl implements JsonRpc {
     public TransactionReceiptDTOExt ethj_getTransactionReceipt(String transactionHash) throws Exception {
         byte[] hash = hexToByteArray(transactionHash);
 
-        TransactionReceipt pendingReceipt = pendingReceipts.get(new ByteArrayWrapper(hash));
-
         TransactionInfo txInfo;
         Block block;
 
-        if (pendingReceipt != null) {
-            txInfo = new TransactionInfo(pendingReceipt);
-            block = null;
-        } else {
-            txInfo = blockchain.getTransactionInfo(hash);
+        txInfo = this.chain.getTransactionInfo(hash);
 
-            if (txInfo == null)
-                return null;
+        if (txInfo == null)
+            return null;
 
-            block = blockchain.getBlockByHash(txInfo.getBlockHash());
+        block = this.chain.getBlockByHash(txInfo.getBlockHash());
 
-            // need to return txes only from main chain
-            Block mainBlock = blockchain.getBlockByNumber(block.getNumber());
-            if (!Arrays.equals(block.getHash(), mainBlock.getHash())) {
-                return null;
-            }
+        // need to return txes only from main chain
+        Block mainBlock = this.chain.getBlockByNumber(block.getNumber());
+        if (!Arrays.equals(block.getHash(), mainBlock.getHash())) {
+            return null;
         }
 
         return new TransactionReceiptDTOExt(block, txInfo);
@@ -503,21 +388,6 @@ public class EthJsonRpcImpl implements JsonRpc {
     @Override
     public String[] eth_getCompilers() {
         return new String[] {"solidity"};
-    }
-
-    @Override
-    public CompilationResult eth_compileSolidity(String contract) throws Exception {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public CompilationResult eth_compileLLL(String contract) {
-        throw new UnsupportedOperationException("LLL compiler not supported");
-    }
-
-    @Override
-    public CompilationResult eth_compileSerpent(String contract){
-        throw new UnsupportedOperationException("Serpent compiler not supported");
     }
 //
 //    @Override
@@ -615,45 +485,35 @@ public class EthJsonRpcImpl implements JsonRpc {
 
     @Override
     public String eth_newBlockFilter() {
-        int id = filterCounter.getAndIncrement();
-        installedFilters.put(id, new NewBlockFilter());
-        return toJsonHex(id);
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String eth_newPendingTransactionFilter() {
-        int id = filterCounter.getAndIncrement();
-        installedFilters.put(id, new PendingTransactionFilter());
-        return toJsonHex(id);
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean eth_uninstallFilter(String id) {
-        if (id == null) return false;
-        return installedFilters.remove(hexToBigInteger(id).intValue()) != null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Object[] eth_getFilterChanges(String id) {
-        Filter filter = installedFilters.get(hexToBigInteger(id).intValue());
-        if (filter == null) return null;
-        return filter.poll();
+        throw new UnsupportedOperationException();
+
     }
 
     @Override
     public Object[] eth_getFilterLogs(String id) {
-        Filter filter = installedFilters.get(hexToBigInteger(id).intValue());
-        if (filter == null) return null;
-        return filter.getAll();
+        throw new UnsupportedOperationException();
+
     }
 
     @Override
     public Object[] eth_getLogs(FilterRequest filterRequest) throws Exception {
-        log.debug("eth_getLogs ...");
-        String id = eth_newFilter(filterRequest);
-        Object[] ret = eth_getFilterChanges(id);
-        eth_uninstallFilter(id);
-        return ret;
+        throw new UnsupportedOperationException();
+
     }
 
     @Override
@@ -942,6 +802,16 @@ public class EthJsonRpcImpl implements JsonRpc {
 
     @Override
     public String personal_signAndSendTransaction(CallArguments tx, String password) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String eth_sendTransaction(CallArguments transactionArgs) throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String eth_sendRawTransaction(String rawData) throws Exception {
         throw new UnsupportedOperationException();
     }
 
