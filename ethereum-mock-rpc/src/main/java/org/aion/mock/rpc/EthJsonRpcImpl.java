@@ -18,6 +18,7 @@
 
 package org.aion.mock.rpc;
 
+import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import lombok.NonNull;
 import org.aion.mock.eth.ChainFacade;
 import org.ethereum.core.*;
@@ -38,6 +39,7 @@ import static org.ethereum.util.ByteUtil.bigIntegerToBytes;
 /**
  * @author Anton Nashatyrev
  */
+@AutoJsonRpcServiceImpl
 public class EthJsonRpcImpl implements JsonRpc {
 
     private static final String BLOCK_LATEST = "latest";

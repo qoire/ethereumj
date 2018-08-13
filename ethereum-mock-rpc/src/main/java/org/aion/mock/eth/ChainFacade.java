@@ -24,17 +24,17 @@ import org.ethereum.core.TransactionReceipt;
  */
 public interface ChainFacade {
 
-    public Block getBlockByNumber(long number);
+    long getBlockNumber();
 
-    public Block getBlockByHash(byte[] blockHash);
+    Block getBlockByNumber(long number);
 
-    public Transaction getTransactionByNumber(long number);
+    Block getBlockByHash(byte[] blockHash);
 
-    public Transaction getTransactionByHash(byte[] transactionHash);
+    Transaction getTransactionByHash(byte[] transactionHash);
 
-    public TransactionReceipt getTransactionReceiptByHash(byte[] transactionHash);
+    TransactionReceipt getTransactionReceiptByHash(byte[] transactionHash);
 
-    public TransactionInfo getTransactionInfo(byte[] transactionHash);
+    TransactionInfo getTransactionInfo(byte[] transactionHash);
 
-    public Block getBestBlock();
+    Block getBestBlock();
 }

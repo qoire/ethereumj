@@ -18,10 +18,7 @@
 
 package org.aion.mock.rpc;
 
-import com.ethercamp.harmony.config.RpcEnabledCondition;
-import com.ethercamp.harmony.util.AppConst;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Conditional;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
@@ -37,10 +34,8 @@ import java.util.List;
  * Created by Stan Reshetnyk on 21.07.16.
  */
 @Slf4j
-@WebFilter(urlPatterns = AppConst.JSON_RPC_PATH)
-@Conditional(RpcEnabledCondition.class)
+@WebFilter(urlPatterns = "/")
 public class AddContentTypeFilter implements Filter {
-
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -53,7 +48,7 @@ public class AddContentTypeFilter implements Filter {
             HttpServletRequest httpRequest = (HttpServletRequest) request;
             HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-            if (AppConst.JSON_RPC_PATH.equals(httpRequest.getRequestURI())) {
+            if ("/".equals(httpRequest.getRequestURI())) {
                 log.info("Found " + httpRequest.getRequestURI());
                 AddParamsToHeader updatedRequest = new AddParamsToHeader((HttpServletRequest) request);
                 httpResponse.addHeader("content-type", "application/json");
@@ -71,28 +66,27 @@ public class AddContentTypeFilter implements Filter {
     public void destroy() {
 
     }
-}
 
-@Slf4j
-class AddParamsToHeader extends HttpServletRequestWrapper {
-
-    public AddParamsToHeader(HttpServletRequest request) {
-        super(request);
-    }
-
-    public String getHeader(String name) {
-        log.info("getHeader " + name + ". Result:" + super.getHeader(name));
-        if (name != null && "content-type".equals(name.toLowerCase())) {
-            return "application/json";
+    @Slf4j
+    protected static class AddParamsToHeader extends HttpServletRequestWrapper {
+        public AddParamsToHeader(HttpServletRequest request) {
+            super(request);
         }
 
-        return super.getHeader(name);
-    }
+        public String getHeader(String name) {
+            log.info("getHeader " + name + ". Result:" + super.getHeader(name));
+            if (name != null && "content-type".equals(name.toLowerCase())) {
+                return "application/json";
+            }
 
-    public Enumeration getHeaderNames() {
-        List<String> names = Collections.list(super.getHeaderNames());
+            return super.getHeader(name);
+        }
+
+        public Enumeration getHeaderNames() {
+            List<String> names = Collections.list(super.getHeaderNames());
 //        names.add("content-type");
 //        names.addAll(Collections.list(super.getParameterNames()));
-        return Collections.enumeration(names);
+            return Collections.enumeration(names);
+        }
     }
 }

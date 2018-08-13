@@ -14,8 +14,21 @@ plugins {
     id 'application'
 }
 
+sourceSets {
+    main {
+        resources {
+            srcDir 'src/main/java'
+        }
+    }
+    test {
+        resources {
+            srcDir 'src/test/java'
+        }
+    }
+}
+
 // Define the main class for the application
-mainClassName = 'App'
+mainClassName = 'org.aion.mock.eth.MockRpcServer'
 
 dependencies {
     // This dependency is found on compile classpath of this component and consumers.
@@ -29,11 +42,17 @@ dependencies {
     compile "com.github.briandilley.jsonrpc4j:jsonrpc4j:1.5.3"
     compile group: 'org.projectlombok', name: 'lombok', version: '1.18.2'
     compile group: 'com.madgag.spongycastle', name: 'core', version: '1.58.0.0'
+    compile group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
+
+    // jetty, embedded servlet
+    compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.12.RC1'
+    compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '9.4.12.RC1'
 
     compile project(":ethereumj-core")
 
     // Use JUnit test framework
     testCompile 'junit:junit:4.12'
+    testCompile project(':ethereum-mock-rpc')
 }
 
 // In this section you declare where to find the dependencies of your project

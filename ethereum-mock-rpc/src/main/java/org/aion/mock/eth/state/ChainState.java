@@ -2,8 +2,7 @@ package org.aion.mock.eth.state;
 
 
 import org.ethereum.core.Block;
-import org.ethereum.core.Transaction;
-import org.ethereum.core.TransactionReceipt;
+import org.ethereum.core.TransactionInfo;
 import org.ethereum.db.ByteArrayWrapper;
 
 import javax.annotation.Nonnull;
@@ -11,15 +10,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 public class ChainState {
 
     private Map<ByteArrayWrapper, Block> blockHashMap = new HashMap<>();
 
     private Map<Long, List<Block>> blockNumberMap = new HashMap<>();
 
-    private Map<ByteArrayWrapper, Transaction> transactionMap = new HashMap<>();
-
-    private Map<ByteArrayWrapper, TransactionReceipt> receiptMap = new HashMap<>();
+    private Map<ByteArrayWrapper, TransactionInfo> transactionInfoMap = new HashMap<>();
 
     // swaps between different block indices, used to switch between forks
     private int chainIndex = 0;
@@ -30,57 +28,65 @@ public class ChainState {
     // best block number of the chain
     private long chainBlockNumber = 0L;
 
+
+    // TODO: mock, there is a better locking strategy, implement later
+
     /**
      * Adds a new block into the chain state, some simple verification checks
      * to ensure (within the context of the mock that things are consistent
-     * @param block
      */
-    public void addBlock(@Nonnull final Block block, List<TransactionReceipt> receipt, long index) {
+    public synchronized void addBlock(@Nonnull final Block block, List<TransactionInfo> infos, long index) {
         checkBlock(block);
 
         if (this.blockHashMap.isEmpty()) {
             chainBlockNumber = block.getNumber();
         }
-
         this.blockHashMap.put(new ByteArrayWrapper(block.getHash()), block);
 
-        for (Transaction tx : block.getTransactionsList()) {
-            this.transactionMap.put(new ByteArrayWrapper(tx.getRawHash()), tx);
+        // places block into
+
+        // TODO: should assert that infos match block transactions
+        for (var info : infos) {
+            this.transactionInfoMap.put(wrap(info.getReceipt().getTransaction().getHash()), info);
         }
     }
 
-    public Block getBlock(@Nonnull final byte[] blockHash) {
+    public synchronized Block getBlock(@Nonnull final byte[] blockHash) {
         return this.blockHashMap.get(new ByteArrayWrapper(blockHash));
     }
 
-    public Block getBlock(long blockNumber) {
+    public synchronized Block getBlock(long blockNumber) {
         if (chainIndex > this.blockNumberMap.get(blockNumber).size() - 1)
             throw new RuntimeException("tried to executeTransferPayload getBlock on non-existent chainIndex: " + chainIndex);
         return this.blockNumberMap.get(blockNumber).get(chainIndex);
     }
 
-    public int getChainIndex() {
+    public synchronized int getChainIndex() {
         return chainIndex;
     }
 
-    public void setChainIndex(int chainIndex) {
+    public synchronized void setChainIndex(int chainIndex) {
         this.chainIndex = chainIndex;
     }
 
-    public long getHeadBlockNumber() {
+    public synchronized long getHeadBlockNumber() {
         return headBlockNumber;
     }
 
-    public void setHeadBlockNumber(long headBlockNumber) {
+    public synchronized void setHeadBlockNumber(long headBlockNumber) {
         this.headBlockNumber = headBlockNumber;
     }
 
-    public long getChainBlockNumber() {
+    public synchronized long getChainBlockNumber() {
         return chainBlockNumber;
     }
 
-    public void setChainBlockNumber(long chainBlockNumber) {
+    public synchronized void setChainBlockNumber(long chainBlockNumber) {
         this.chainBlockNumber = chainBlockNumber;
+    }
+
+    public synchronized TransactionInfo getTransactionInfo(byte[] transactionHash) {
+        return this.transactionInfoMap.get(wrap(transactionHash));
     }
 
     protected void checkBlock(@Nonnull final Block block) {

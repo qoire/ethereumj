@@ -1,13 +1,29 @@
 package org.aion.mock.eth;
 
-import com.googlecode.jsonrpc4j.JsonRpcServer;
-import org.aion.mock.rpc.EthJsonRpcImpl;
-import org.aion.mock.rpc.JsonRpc;
+import org.aion.mock.eth.populate.PopulationStrategy;
+import org.aion.mock.eth.populate.TransferPopulationStrategy;
+import org.aion.mock.eth.state.ChainState;
+import org.eclipse.jetty.server.Server;
+
+import java.util.Collections;
 
 public class MockRpcServer {
     public static void main(String[] args) {
+        ChainFacade facade = generateChainFacade();
+    }
 
-        var rpcHandler = new EthJsonRpcImpl();
-        var server = new JsonRpcServer(rpcHandler, JsonRpc.class);
+    private static ChainFacade generateChainFacade() {
+        var state = new ChainState();
+        PopulationStrategy strategy = TransferPopulationStrategy.builder()
+                .startNumber(0)
+                .endNumber(128)
+                .specialRules(Collections.emptyList())
+                .state(state)
+                .build();
+        return new DefaultChainFacade(strategy, state);
+    }
+
+    private static Server generateJettyServer() {
+
     }
 }

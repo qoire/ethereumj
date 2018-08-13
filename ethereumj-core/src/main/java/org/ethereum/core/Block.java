@@ -54,10 +54,10 @@ public class Block {
     private BlockHeader header;
 
     /* Transactions */
-    private List<Transaction> transactionsList = new CopyOnWriteArrayList<>();
+    protected List<Transaction> transactionsList = new CopyOnWriteArrayList<>();
 
     /* Uncles */
-    private List<BlockHeader> uncleList = new CopyOnWriteArrayList<>();
+    protected List<BlockHeader> uncleList = new CopyOnWriteArrayList<>();
 
     /* Private */
 
@@ -66,7 +66,7 @@ public class Block {
 
     /* Constructors */
 
-    private Block() {
+    protected Block() {
     }
 
     public Block(byte[] rawData) {

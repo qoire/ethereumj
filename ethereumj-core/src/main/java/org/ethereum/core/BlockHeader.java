@@ -43,55 +43,55 @@ public class BlockHeader {
     public static final int MAX_HEADER_SIZE = 800;
 
     /* The SHA3 256-bit hash of the parent block, in its entirety */
-    private byte[] parentHash;
+    protected byte[] parentHash;
     /* The SHA3 256-bit hash of the uncles list portion of this block */
-    private byte[] unclesHash;
+    protected byte[] unclesHash;
     /* The 160-bit address to which all fees collected from the
      * successful mining of this block be transferred; formally */
-    private byte[] coinbase;
+    protected byte[] coinbase;
     /* The SHA3 256-bit hash of the root node of the state trie,
      * after all transactions are executed and finalisations applied */
-    private byte[] stateRoot;
+    protected byte[] stateRoot;
     /* The SHA3 256-bit hash of the root node of the trie structure
      * populated with each transaction in the transaction
      * list portion, the trie is populate by [key, val] --> [rlp(index), rlp(tx_recipe)]
      * of the block */
-    private byte[] txTrieRoot;
+    protected byte[] txTrieRoot;
     /* The SHA3 256-bit hash of the root node of the trie structure
      * populated with each transaction recipe in the transaction recipes
      * list portion, the trie is populate by [key, val] --> [rlp(index), rlp(tx_recipe)]
      * of the block */
-    private byte[] receiptTrieRoot;
+    protected byte[] receiptTrieRoot;
     /* The Bloom filter composed from indexable information 
      * (logger address and log topics) contained in each log entry 
      * from the receipt of each transaction in the transactions list */
-    private byte[] logsBloom;
+    protected byte[] logsBloom;
     /* A scalar value corresponding to the difficulty level of this block.
      * This can be calculated from the previous block’s difficulty level
      * and the timestamp */
-    private byte[] difficulty;
+    protected byte[] difficulty;
     /* A scalar value equal to the reasonable output of Unix's time()
      * at this block's inception */
-    private long timestamp;
+    protected long timestamp;
     /* A scalar value equal to the number of ancestor blocks.
      * The genesis block has a number of zero */
-    private long number;
+    protected long number;
     /* A scalar value equal to the current limit of gas expenditure per block */
-    private byte[] gasLimit;
+    protected byte[] gasLimit;
     /* A scalar value equal to the total gas used in transactions in this block */
-    private long gasUsed;
+    protected long gasUsed;
 
 
-    private byte[] mixHash;
+    protected byte[] mixHash;
 
     /* An arbitrary byte array containing data relevant to this block.
      * With the exception of the genesis block, this must be 32 bytes or fewer */
-    private byte[] extraData;
+    protected byte[] extraData;
     /* A 256-bit hash which proves that a sufficient amount
      * of computation has been carried out on this block */
-    private byte[] nonce;
+    protected byte[] nonce;
 
-    private byte[] hashCache;
+    protected byte[] hashCache;
 
     public BlockHeader(byte[] encoded) {
         this((RLPList) RLP.decode2(encoded).get(0));
@@ -156,6 +156,11 @@ public class BlockHeader {
 
     public byte[] getParentHash() {
         return parentHash;
+    }
+
+    public void setParentHash(byte[] parentHash) {
+        this.parentHash = parentHash;
+        hashCache = null;
     }
 
     public byte[] getUnclesHash() {
