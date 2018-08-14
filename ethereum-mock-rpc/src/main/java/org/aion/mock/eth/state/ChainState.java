@@ -15,12 +15,12 @@ public class ChainState {
 
     private Map<ByteArrayWrapper, Block> blockHashMap = new HashMap<>();
 
-    private Map<Long, List<Block>> blockNumberMap = new HashMap<>();
+    private Map<Long, Map<String, Block>> blockNumberMap = new HashMap<>();
 
     private Map<ByteArrayWrapper, TransactionInfo> transactionInfoMap = new HashMap<>();
 
     // swaps between different block indices, used to switch between forks
-    private int chainIndex = 0;
+    private String currentFork = "";
 
     // best public block number, visible to the user
     private long headBlockNumber = 0L;
@@ -34,7 +34,7 @@ public class ChainState {
      * Adds a new block into the chain state, some simple verification checks
      * to ensure (within the context of the mock that things are consistent
      */
-    public synchronized void addBlock(@Nonnull final Block block, List<TransactionInfo> infos, long index) {
+    public synchronized void addBlock(@Nonnull final Block block, List<TransactionInfo> infos, String fork) {
         checkBlock(block);
 
         log.debug("block added to state: " + block.toFlatString());
@@ -45,15 +45,29 @@ public class ChainState {
         this.blockHashMap.put(new ByteArrayWrapper(block.getHash()), block);
 
         if (this.blockNumberMap.get(block.getNumber()) == null) {
-            this.blockNumberMap.put(block.getNumber(), Arrays.asList(block));
+            Map<String, Block> levelForkBlockMap = new HashMap<>();
+            levelForkBlockMap.put(fork, block);
+            this.blockNumberMap.put(block.getNumber(), levelForkBlockMap);
+        } else {
+            var levelForkBlockMap = this.blockNumberMap.get(block.getNumber());
+            if (levelForkBlockMap.containsKey(fork))
+                throw new RuntimeException("attempted to add two blocks, same fork same number");
+            // otherwise, we know they're unique
+            levelForkBlockMap.put(fork, block);
         }
-
-        // places block into
 
         // TODO: should assert that infos match block transactions
         for (var info : infos) {
             this.transactionInfoMap.put(wrap(info.getReceipt().getTransaction().getHash()), info);
         }
+    }
+
+    public synchronized void setCurrentFork(@Nonnull final String fork) {
+        this.currentFork = fork;
+    }
+
+    public synchronized String getCurrentFork() {
+        return this.currentFork;
     }
 
     public synchronized Block getBlock(@Nonnull final byte[] blockHash) {
@@ -63,15 +77,7 @@ public class ChainState {
     public synchronized Block getBlock(long blockNumber) {
         if (blockNumber > this.headBlockNumber)
             return null;
-        return this.blockNumberMap.get(blockNumber).get(chainIndex);
-    }
-
-    public synchronized int getChainIndex() {
-        return chainIndex;
-    }
-
-    public synchronized void setChainIndex(int chainIndex) {
-        this.chainIndex = chainIndex;
+        return this.blockNumberMap.get(blockNumber).get(this.currentFork);
     }
 
     public synchronized long getHeadBlockNumber() {
@@ -96,11 +102,6 @@ public class ChainState {
 
     protected void checkBlock(@Nonnull final Block block) {
         assert block.getParentHash() != null;
-
-        if (!blockHashMap.isEmpty())
-            assert blockHashMap.containsKey(wrap(block.getParentHash()));
-        assert !blockHashMap.containsKey(wrap(block.getHash()));
-
         assert block.getCoinbase() != null;
         assert block.getDifficulty() != null;
         assert block.getDifficultyBI() != null;
@@ -109,11 +110,6 @@ public class ChainState {
         assert block.getLogBloom() != null;
         assert block.getTransactionsList() != null;
         assert block.getTimestamp() > blockHashMap.get(wrap(block.getParentHash())).getTimestamp();
-    }
-
-    protected void insertBlockNumber(@Nonnull final Block block, long index) {
-        if (this.blockNumberMap.get(index) == null && index != 0)
-            throw new RuntimeException("cannot throw block number");
     }
 
     private static ByteArrayWrapper wrap(@Nonnull final byte[] input) {

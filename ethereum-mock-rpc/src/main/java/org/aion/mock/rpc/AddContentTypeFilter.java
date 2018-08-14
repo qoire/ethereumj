@@ -20,6 +20,8 @@ package org.aion.mock.rpc;
 
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
@@ -50,6 +52,17 @@ public class AddContentTypeFilter implements Filter {
 
             if ("/".equals(httpRequest.getRequestURI())) {
                 log.info("Found " + httpRequest.getRequestURI());
+
+                if (isNullOrIncorrect(httpRequest.getHeader("content-type"), "application/json")) {
+                    log.debug("invalid content-type: " + httpRequest.getHeader("content-type"));
+                    return;
+                }
+
+                if (isNullOrIncorrect("accept", "application/json")) {
+                    log.debug("invalid accept type: " + httpRequest.getHeader("accept"));
+                    return;
+                }
+
                 AddParamsToHeader updatedRequest = new AddParamsToHeader((HttpServletRequest) request);
                 httpResponse.addHeader("content-type", "application/json");
                 httpResponse.addHeader("accept", "application/json");
@@ -60,6 +73,12 @@ public class AddContentTypeFilter implements Filter {
         } else {
             throw new RuntimeException("AddContentTypeFilter supports only HTTP requests.");
         }
+    }
+
+    private static boolean isNullOrIncorrect(@Nullable final String input,
+                                             @Nonnull final String expectedHeader) {
+        if (input == null) return false;
+        return !input.equals(expectedHeader);
     }
 
     @Override

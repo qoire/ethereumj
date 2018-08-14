@@ -17,7 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-public class TransferPopulationStrategy extends PopulationStrategy {
+public class PopulationEngine extends PopulationStrategy {
 
     @Singular("transferEventList")
     private List<ExecutionUtilities.TransferEvent> transferEventList;
@@ -29,11 +29,11 @@ public class TransferPopulationStrategy extends PopulationStrategy {
     @Default private Integer endNumber = 0;
 
     @Builder
-    private TransferPopulationStrategy(@Nonnull final ChainState state,
-                                       @NonNull final Integer startNumber,
-                                       @NonNull final Integer endNumber,
-                                       @Nullable final List<ExecutionUtilities.TransferEvent> transferEventList,
-                                       @Nullable final List<AbstractRule> specialRules) {
+    private PopulationEngine(@Nonnull final ChainState state,
+                             @NonNull final Integer startNumber,
+                             @NonNull final Integer endNumber,
+                             @Nullable final List<ExecutionUtilities.TransferEvent> transferEventList,
+                             @Nullable final List<AbstractRule> specialRules) {
         super(state);
         assert startNumber >= 0;
         assert endNumber >= startNumber;

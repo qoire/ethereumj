@@ -4,19 +4,49 @@
   "startNumber": 0,
   // blockchain will stop after this number
   "endNumber": 100,
+  "contractAddress": "0xc0ffee254729296a45a3885639AC7E10F9d54979",
   // transfers, and which block number they're included in
   "transfers": [
     // the full request, a to address (recipient), and the amount to send
-    {"from": "0xc0ffee254729296a45a3885639AC7E10F9d54979", "to": "0xe51054c47678f163cd7717007e28d3751e5e854a18887adcdc62b5b8c4bbec7f", "amount": 100, "block": 50},
+    {
+      "name": "firstTransfer",
+      "from": "0xc0ffee254729296a45a3885639AC7E10F9d54979",
+      "to": "0xe51054c47678f163cd7717007e28d3751e5e854a18887adcdc62b5b8c4bbec7f",
+      "amount": 100
+    },
     // reduced, this will let the mock fill in the from and to (deterministic)
-    {"amount": 150, "block": 51}
+    {
+      "name": "secondTransfer",
+      "amount": 150
+    }
   ],
   // mode, determines whether the blockchain is: static, ticking, manual
   "mode": {
     // static blockchain indicates that the blockchain is already at some predetermined height
     // and is not generating any more, useful for trying out syncing situations
-    "name": "static"
+    "name": "ticking"
   },
-  // special rules, applies special rules (ex. forking logic)
-  "special": null,
+  "forks": [
+    {
+      "name": "finnea",
+      "forkTriggerBlockNumber": 200,
+      "forkResultingBlockNumber": 195,
+      "startBlockNumber": 150,
+      "endBlockNumber": 167,
+      "startDifficulty": 1024,
+      "transfers": [
+        {"name": "firstTransfer", "number": 100},
+        {"name": "secondTransfer", "number": 120}
+      ]
+    },
+    {
+      "name": "tractor",
+      "triggerBlockNumber": 350,
+      "forkResultingBlockNumber": 200,
+      "startBlockNumber": 150,
+      "endBlockNUmber": 300,
+      "startDifficulty": 1024
+    }
+  ],
+  "randomGeneration": 100
 }

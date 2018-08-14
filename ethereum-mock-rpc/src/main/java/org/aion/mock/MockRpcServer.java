@@ -1,17 +1,21 @@
-package org.aion.mock.eth;
+package org.aion.mock;
 
 import lombok.extern.slf4j.Slf4j;
+import org.aion.mock.eth.ChainFacade;
+import org.aion.mock.eth.DefaultChainFacade;
 import org.aion.mock.eth.populate.PopulationStrategy;
-import org.aion.mock.eth.populate.TransferPopulationStrategy;
-import org.aion.mock.eth.populate.rules.RandomPopulationRule;
+import org.aion.mock.eth.populate.PopulationEngine;
 import org.aion.mock.eth.state.ChainState;
+import org.aion.mock.rpc.AddContentTypeFilter;
 import org.aion.mock.rpc.HttpJsonRpcServlet;
 import org.aion.util.MockAddressGenerator;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
+import javax.servlet.DispatcherType;
 import java.util.Collections;
+import java.util.EnumSet;
 
 @Slf4j
 public class MockRpcServer {
@@ -21,7 +25,7 @@ public class MockRpcServer {
 
     public static void main(String[] args) {
         ChainFacade facade = generateChainFacade();
-        Server server = generateJettyServer(facade);
+        Server server = generateJettyServer(facade, 8545);
 
         try {
             server.start();
@@ -33,7 +37,7 @@ public class MockRpcServer {
 
     private static ChainFacade generateChainFacade() {
         var state = new ChainState();
-        PopulationStrategy strategy = TransferPopulationStrategy.builder()
+        PopulationStrategy strategy = PopulationEngine.builder()
                 .startNumber(0)
                 .endNumber(128)
                 .state(state)
@@ -42,11 +46,11 @@ public class MockRpcServer {
         return new DefaultChainFacade(strategy, state);
     }
 
-    private static Server generateJettyServer(ChainFacade facade) {
-        Server server = new Server(8545);
-
+    private static Server generateJettyServer(ChainFacade facade, int port) {
+        Server server = new Server(port);
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
+        context.addFilter(AddContentTypeFilter.class, "/", EnumSet.of(DispatcherType.REQUEST));
         context.addServlet(new ServletHolder(new HttpJsonRpcServlet(facade)), "/");
         server.setHandler(context);
         return server;

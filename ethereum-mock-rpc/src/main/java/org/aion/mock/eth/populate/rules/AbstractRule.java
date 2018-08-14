@@ -16,7 +16,7 @@ public abstract class AbstractRule {
     // some rules may need to implement a start method (not all)
     public abstract void start();
 
-    public abstract void build(Block block, List<TransactionInfo> infos);
+    public abstract void apply(ChainState state);
 
     public abstract void applyStep(ChainState state);
 }
