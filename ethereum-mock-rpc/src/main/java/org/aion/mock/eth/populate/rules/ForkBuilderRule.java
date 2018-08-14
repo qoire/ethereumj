@@ -2,6 +2,7 @@ package org.aion.mock.eth.populate.rules;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.aion.mock.eth.core.BlockConstructor;
 import org.aion.mock.eth.populate.ExecutionUtilities;
@@ -38,7 +39,7 @@ public class ForkBuilderRule extends AbstractRule {
 
     private ChainState state;
 
-    public void ForkBuilderRule(ChainState state, List<ForkEvent> forkEvents) {
+    public ForkBuilderRule(ChainState state, List<ForkEvent> forkEvents) {
         this.state = state;
         this.forkEvents = forkEvents;
     }
@@ -125,8 +126,8 @@ public class ForkBuilderRule extends AbstractRule {
         long invalidChainDefinitions = this.forkEvents
                 .stream()
                 .filter(f -> {
-                    if (f.getForkEndBlockNumber() > f.getForkStartBlockNumber()) {
-                        log.error("configuration for chain: " + f.getForkName() + " endNumber > startNumber");
+                    if (f.getForkEndBlockNumber() < f.getForkStartBlockNumber()) {
+                        log.error("configuration for chain: " + f.getForkName() + " endNumber < startNumber");
                         return true;
                     }
 
@@ -191,10 +192,18 @@ public class ForkBuilderRule extends AbstractRule {
     @Builder
     public static class ForkEvent {
         private String forkName;
-        private long forkStartBlockNumber;
-        private long forkEndBlockNumber;
-        private BigInteger initialDifficulty;
+
+        private long forkStartBlockNumber = 0;
+
+        private long forkEndBlockNumber = 0;
+
+        @Builder.Default
+        private BigInteger initialDifficulty = BigInteger.ZERO;
+
+        @Singular
         private List<ExecutionUtilities.TransferEvent> forkTransferEvents;
+
+
         private int chainIndex;
     }
 

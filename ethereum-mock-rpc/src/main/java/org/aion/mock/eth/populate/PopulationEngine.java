@@ -39,42 +39,17 @@ public class PopulationEngine extends PopulationStrategy {
         assert endNumber >= startNumber;
 
         this.startNumber = startNumber;
-        // inclusive
         this.endNumber = endNumber;
 
         this.transferEventList = transferEventList == null ? Collections.emptyList() : transferEventList;
         this.specialRules = specialRules == null ? Collections.emptyList() : specialRules;
     }
 
-    protected void populateBlocksWithTransfers() {
-        byte[] lastParentHash = null;
-        for (int i = this.startNumber; i < this.endNumber; i++) {
-            var blockBuilder = BlockConstructor
-                    .builder();
-
-            blockBuilder
-                    .number(i)
-                    .difficulty(BigInteger.ONE.toByteArray());
-
-            if (lastParentHash != null)
-                blockBuilder.parentHash(lastParentHash);
-
-            var block = blockBuilder.build().buildBlock();
-
-            List<TransactionInfo> infos = new ArrayList<>();
-            for (var rule : this.specialRules) {
-                rule.build(block, infos);
-            }
-
-            this.state.addBlock(block, infos, 0);
-            lastParentHash = block.getHash();
-        }
-    }
-
     @Override
     public void populateInitialInternal() {
-        // define the rules for initial population
-        populateBlocksWithTransfers();
+        for (var rules : this.specialRules) {
+            rules.apply(this.state);
+        }
     }
 
     @Override

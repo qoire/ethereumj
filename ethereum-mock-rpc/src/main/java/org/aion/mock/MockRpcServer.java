@@ -5,6 +5,8 @@ import org.aion.mock.eth.ChainFacade;
 import org.aion.mock.eth.DefaultChainFacade;
 import org.aion.mock.eth.populate.PopulationStrategy;
 import org.aion.mock.eth.populate.PopulationEngine;
+import org.aion.mock.eth.populate.pipeline.RandomTransfer;
+import org.aion.mock.eth.populate.rules.ForkBuilderRule;
 import org.aion.mock.eth.state.ChainState;
 import org.aion.mock.rpc.AddContentTypeFilter;
 import org.aion.mock.rpc.HttpJsonRpcServlet;
@@ -37,11 +39,24 @@ public class MockRpcServer {
 
     private static ChainFacade generateChainFacade() {
         var state = new ChainState();
+        var randomTransferGen = new RandomTransfer(100, CONTRACT_ADDRESS);
+
+        var forkEvent = ForkBuilderRule.ForkEvent.builder()
+                .forkStartBlockNumber(0)
+                .forkEndBlockNumber(100)
+                .forkName("main")
+                .forkTransferEvents(Collections.emptyList())
+                .build();
+
+        // generate a default fork event
+        var forkBuilder = new ForkBuilderRule(state, Collections.singletonList(forkEvent));
+        forkBuilder.attach(randomTransferGen);
+
         PopulationStrategy strategy = PopulationEngine.builder()
                 .startNumber(0)
                 .endNumber(128)
                 .state(state)
-                .specialRules(Collections.singletonList(new RandomPopulationRule(100, CONTRACT_ADDRESS)))
+                .specialRules(Collections.singletonList(forkBuilder))
                 .build();
         return new DefaultChainFacade(strategy, state);
     }
