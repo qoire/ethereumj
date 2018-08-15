@@ -106,11 +106,6 @@ ext {
     junitVersion = '4.11'
 }
 
-repositories {
-    jcenter()
-    maven { url "https://dl.bintray.com/ethereum/maven/" }
-}
-
 dependencies {
     compile "io.netty:netty-all:4.0.30.Final"
     compile "com.madgag.spongycastle:core:${scastleVersion}" // for SHA3 and SECP256K1
@@ -159,18 +154,6 @@ dependencies {
     testCompile "com.github.briandilley.jsonrpc4j:jsonrpc4j:1.1"
 }
 
-
-javadoc {
-    options.author = true
-    options.header = project.name
-    options.addStringOption('-quiet')
-    options.encoding = "UTF-8"
-    options.links(
-            "http://docs.oracle.com/javase/8/docs/api/",
-            "http://netty.io/4.0/api/"
-    )
-}
-
 //create a single Jar with all dependencies
 task fatJar(type: Jar) {
     classifier = 'all'
@@ -182,53 +165,6 @@ task fatJar(type: Jar) {
     with jar
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-task javadocJar(type: Jar) {
-    classifier = "javadoc"
-    from javadoc
-}
-
-artifacts {
-    archives sourcesJar
-    archives javadocJar
-}
-
-jacocoTestReport {
-    reports {
-        xml.enabled = true
-        html.enabled = true
-    }
-}
-
-def bintrayUsername = project.hasProperty('bintrayUser') ? project.bintrayUser : ''
-def bintrayPassword = project.hasProperty('bintrayKey') ? project.bintrayKey : ''
-def pullRequest = System.getenv('TRAVIS_PULL_REQUEST')
-def branchName = System.getenv('TRAVIS_BRANCH')
-
-bintray {
-    user = bintrayUsername
-    key = bintrayPassword
-
-    configurations = ['archives']
-
-    dryRun = false //Whether to run this as dry-run, without deploying
-    publish = true //If version should be auto published after an upload
-    pkg {
-        userOrg = 'ethereum' //An optional organization name when the repo belongs to one of the user's orgs
-        repo = 'maven'
-        name = 'org.ethereum'
-    }
-}
-
-bintrayUpload.onlyIf {
-    // comment 'false' and uncomment the next line to publish next release
-    (!pullRequest || pullRequest == 'false') && !project.version.endsWith('-SNAPSHOT')
-//     false
-}
 
 def gitCommitHash() {
     def process = "git rev-parse --short HEAD".execute()
@@ -246,7 +182,4 @@ def gitCurBranch() {
     if (branchName) return branchName
     def process = "git rev-parse --abbrev-ref HEAD".execute()
     return process.text.trim()
-}
-
-compileJava {
 }

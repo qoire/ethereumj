@@ -7,11 +7,19 @@
  */
 
 plugins {
+    // lombok, for code generation
+    id 'io.franzbecker.gradle-lombok' version '1.14'
+
     // Apply the java plugin to add support for Java
     id 'java'
 
     // Apply the application plugin to add support for building an application
     id 'application'
+}
+
+lombok {
+    version = '1.18.2'
+    sha256 = "" // skip verification
 }
 
 sourceSets {
@@ -53,7 +61,6 @@ dependencies {
 
     // Use JUnit test framework
     testCompile 'junit:junit:4.12'
-    testCompile project(':ethereum-mock-rpc')
 }
 
 // In this section you declare where to find the dependencies of your project
