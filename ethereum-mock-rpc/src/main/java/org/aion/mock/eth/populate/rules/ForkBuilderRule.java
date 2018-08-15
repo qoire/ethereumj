@@ -54,6 +54,7 @@ public class ForkBuilderRule extends AbstractRule {
      */
     public synchronized void attach(BlockPipelineElement bpe) {
         this.bpe.add(bpe);
+        log.debug("attached pipeline element class {} at position {}", bpe.getClass().toString(), this.bpe.size() - 1);
     }
 
     @Override

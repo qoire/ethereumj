@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.ethereum.util.ByteUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -23,9 +24,6 @@ public class ServerConfig {
     public Map<String, Transfers> transfers;
 
     public List<String> mode;
-
-    @JsonIgnore
-    public ParsedConfig parsed;
 
     @Data
     @NoArgsConstructor
@@ -47,12 +45,7 @@ public class ServerConfig {
         public long amount;
     }
 
-    /**
-     * Holder class for storing configs that we parse from
-     * server configs
-     */
-    @Data
-    public static class ParsedConfig {
-
+    public byte[] getContractAddressBytes() {
+        return ByteUtil.hexStringToBytes(this.contractAddress);
     }
 }

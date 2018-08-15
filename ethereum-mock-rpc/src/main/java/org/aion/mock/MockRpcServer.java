@@ -12,6 +12,7 @@ import org.aion.mock.eth.populate.PopulationStrategy;
 import org.aion.mock.eth.populate.PopulationEngine;
 import org.aion.mock.eth.populate.base.ForkEvent;
 import org.aion.mock.eth.populate.pipeline.RandomTransfer;
+import org.aion.mock.eth.populate.pipeline.UserTransfer;
 import org.aion.mock.eth.populate.rules.ForkBuilderRule;
 import org.aion.mock.eth.state.ChainState;
 import org.aion.mock.rpc.AddContentTypeFilter;
@@ -58,18 +59,21 @@ public class MockRpcServer {
 
     private static ChainFacade generateChainFacade(ServerConfig config) {
         var state = new ChainState();
-        var randomTransferGen = new RandomTransfer(100, CONTRACT_ADDRESS);
+        var randomTransferGen = new RandomTransfer(100, config.getContractAddressBytes());
 
         // generate all fork events
         var forkEvents = generateForkEvents(config);
 
         // generate a default fork event
         var forkBuilder = new ForkBuilderRule(state, forkEvents);
-        forkBuilder.attach(randomTransferGen);
+        // attach UserTransfer pipeline element (for generating transfers)
+        forkBuilder.attach(new UserTransfer(config.getContractAddressBytes(), forkEvents));
+
+        if (config.getMode().contains("throughput"))
+            // attach random transaction generation element
+            forkBuilder.attach(randomTransferGen);
 
         PopulationStrategy strategy = PopulationEngine.builder()
-                .startNumber(0)
-                .endNumber(128)
                 .state(state)
                 .specialRules(Collections.singletonList(forkBuilder))
                 .build();
@@ -125,6 +129,9 @@ public class MockRpcServer {
                 for (var i : forkTransferEvents) {
                     forkEventBuilder.forkTransferEvent(toTransferEvent(i.getX(), i.getY().getValue()));
                 }
+
+                ForkEvent event = forkEventBuilder.build();
+                event.sortTransfers();
             }
 
             forkEventMap.put(fork.getKey(), forkEventBuilder.build());

@@ -25,22 +25,12 @@ public class PopulationEngine extends PopulationStrategy {
     @Singular("specialRules")
     private List<AbstractRule> specialRules;
 
-    @Default private Integer startNumber = 0;
-    @Default private Integer endNumber = 0;
 
     @Builder
     private PopulationEngine(@Nonnull final ChainState state,
-                             @NonNull final Integer startNumber,
-                             @NonNull final Integer endNumber,
                              @Nullable final List<ExecutionUtilities.TransferEvent> transferEventList,
                              @Nullable final List<AbstractRule> specialRules) {
         super(state);
-        assert startNumber >= 0;
-        assert endNumber >= startNumber;
-
-        this.startNumber = startNumber;
-        this.endNumber = endNumber;
-
         this.transferEventList = transferEventList == null ? Collections.emptyList() : transferEventList;
         this.specialRules = specialRules == null ? Collections.emptyList() : specialRules;
     }
