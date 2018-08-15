@@ -26,19 +26,22 @@ public class ExecutionUtilities {
 
     protected static final byte[] EMPTY = new byte[0];
 
-    public static PostTransactionExecution executeTransferPayload(@Nonnull final byte[] contractAddress,
-                                                                  @Nonnull final List<TransferEvent> events,
-                                                                  @Nullable byte[] from) {
-        from = from == null ? getEthereumAddress() : from;
+    public static PostTransactionExecution
+    executeTransferPayload(@Nonnull final byte[] contractAddress,
+                           @Nullable byte[] ethereumSenderAddress,
+                           @Nullable byte[] ethereumDestinationAddress,
+                           @Nonnull final List<TransferEvent> events) {
+        ethereumSenderAddress = ethereumSenderAddress == null ? getEthereumAddress() : ethereumSenderAddress;
+        ethereumDestinationAddress = ethereumDestinationAddress == null ? getEthereumAddress() : ethereumDestinationAddress;
+
         var transaction = new MockTransaction(EMPTY,
                 EMPTY,
                 EMPTY,
-                from,
-                getEthereumAddress(),
+                ethereumSenderAddress,
+                ethereumDestinationAddress,
                 EMPTY,
                 EMPTY,
                 0x0);
-
         var transactionReceipt = createReceipt(contractAddress, transaction, events);
         return new PostTransactionExecution(transaction, transactionReceipt);
     }
@@ -72,9 +75,11 @@ public class ExecutionUtilities {
 
     @Data
     public static class TransferEvent {
-        public final byte[] recipient;
-        public final BigInteger amount;
-        public final long blockNumber;
+        private final String name;
+        private final byte[] sender;
+        private final byte[] recipient;
+        private final BigInteger amount;
+        private final long blockNumber;
     }
 
     @Data

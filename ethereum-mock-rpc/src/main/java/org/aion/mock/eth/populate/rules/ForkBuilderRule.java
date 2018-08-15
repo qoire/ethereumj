@@ -6,6 +6,7 @@ import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.aion.mock.eth.core.BlockConstructor;
 import org.aion.mock.eth.populate.ExecutionUtilities;
+import org.aion.mock.eth.populate.base.ForkEvent;
 import org.aion.mock.eth.populate.pipeline.BlockItem;
 import org.aion.mock.eth.populate.pipeline.BlockPipelineElement;
 import org.aion.mock.eth.state.ChainState;
@@ -36,11 +37,11 @@ public class ForkBuilderRule extends AbstractRule {
     private List<BlockPipelineElement> bpe = new ArrayList<>();
 
     @GuardedBy("this")
-    private List<ForkEvent> forkEvents;
+    private Map<String, ForkEvent> forkEvents;
 
     private ChainState state;
 
-    public ForkBuilderRule(ChainState state, List<ForkEvent> forkEvents) {
+    public ForkBuilderRule(ChainState state, Map<String, ForkEvent> forkEvents) {
         this.state = state;
         this.forkEvents = forkEvents;
     }
@@ -72,12 +73,12 @@ public class ForkBuilderRule extends AbstractRule {
         generateIndices();
 
         // grab the ranges
-        long min = Collections.min(this.forkEvents, new ForkEventStartBlockComparator()).getForkStartBlockNumber();
-        long max = Collections.max(this.forkEvents, new ForkEventEndBlockComparator()).getForkEndBlockNumber();
+        long min = Collections.min(this.forkEvents.values(), new ForkEventStartBlockComparator()).getForkStartBlockNumber();
+        long max = Collections.max(this.forkEvents.values(), new ForkEventEndBlockComparator()).getForkEndBlockNumber();
 
         Map<String, byte[]> parentHashes = new HashMap<>();
         for (long i = min; i < max; i++) {
-            for (ForkEvent event : this.forkEvents) {
+            for (ForkEvent event : this.forkEvents.values()) {
                 if (isInRange(i, event)) {
                     var builder = constructDefault(i, event);
                     {
@@ -117,6 +118,7 @@ public class ForkBuilderRule extends AbstractRule {
     private void validateInputs() {
         // validate that correct input is available
         long mainChain = this.forkEvents
+                .values()
                 .stream()
                 .filter(f -> f.getForkName().equals("main"))
                 .count();
@@ -126,6 +128,7 @@ public class ForkBuilderRule extends AbstractRule {
         }
 
         long invalidChainDefinitions = this.forkEvents
+                .values()
                 .stream()
                 .filter(f -> {
                     if (f.getForkEndBlockNumber() < f.getForkStartBlockNumber()) {
@@ -153,7 +156,7 @@ public class ForkBuilderRule extends AbstractRule {
         builder.number(blockNumber)
                 .difficulty(event.getInitialDifficulty()
                         .add(BigInteger.valueOf(blockNumber))
-                        .subtract(BigInteger.valueOf(event.forkStartBlockNumber))
+                        .subtract(BigInteger.valueOf(event.getForkStartBlockNumber()))
                         .toByteArray());
         return builder;
     }
@@ -187,25 +190,6 @@ public class ForkBuilderRule extends AbstractRule {
 
     private void generateIndices() {
 
-    }
-
-    @Data
-    @Builder
-    public static class ForkEvent {
-        private String forkName;
-
-        private long forkStartBlockNumber = 0;
-
-        private long forkEndBlockNumber = 0;
-
-        @Builder.Default
-        private BigInteger initialDifficulty = BigInteger.ZERO;
-
-        @Singular
-        private List<ExecutionUtilities.TransferEvent> forkTransferEvents;
-
-
-        private int chainIndex;
     }
 
     protected static class ForkEventStartBlockComparator implements Comparator<ForkEvent> {

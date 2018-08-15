@@ -68,12 +68,12 @@ public class ConfigLoader {
         return true;
     }
 
-    private static final Pattern addressPattern = Pattern.compile("^0x(0-9a-fA-F)[40]$");
+    private static final Pattern addressPattern = Pattern.compile("^0x[a-fA-F\\d]{40}$");
     private static boolean isValidAddress(@Nonnull final String input) {
         return addressPattern.matcher(input).matches();
     }
 
-    private static final Pattern bytes32Pattern = Pattern.compile("^0x(0-9a-fA-F)[64]");
+    private static final Pattern bytes32Pattern = Pattern.compile("^0x[a-fA-F\\d]{64}$");
     private static boolean isBytes32(@Nonnull final String input) {
         return bytes32Pattern.matcher(input).matches();
     }

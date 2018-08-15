@@ -28,16 +28,25 @@ public class RandomTransfer implements BlockPipelineElement {
         List<TransactionReceipt> receipts = item.getReceipts();
         List<TransactionReceipt> newReceipts = new ArrayList<>();
         for (int i = 0; i < amount - receipts.size(); i++) {
-            byte[] recipientAddress = MockAddressGenerator.getAionAddress();
-            byte[] senderAddress = MockAddressGenerator.getEthereumAddress();
+            byte[] ethereumSenderAddress = MockAddressGenerator.getEthereumAddress();
+            byte[] ethereumDestinationAddress = MockAddressGenerator.getEthereumAddress();
+            byte[] aionRecipientAddress = MockAddressGenerator.getAionAddress();
 
             // pseudo execute the transactions
             ExecutionUtilities.TransferEvent event = new ExecutionUtilities.TransferEvent(
-                    recipientAddress, BigInteger.ONE, item.getBlock().getNumber());
+                    "random" + i,
+                    MockAddressGenerator.getEthereumAddress(),
+                    aionRecipientAddress,
+                    BigInteger.ONE,
+                    item.getBlock().getNumber());
 
             // add to receipts
-            var executed = ExecutionUtilities.executeTransferPayload(this.contractAddress,
-                    Collections.singletonList(event), senderAddress);
+            var executed = ExecutionUtilities.executeTransferPayload(
+                    this.contractAddress,
+                    ethereumSenderAddress,
+                    ethereumDestinationAddress,
+                    Collections.singletonList(event));
+
             receipts.add(executed.getReceipt());
             newReceipts.add(executed.getReceipt());
         }
