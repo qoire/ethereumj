@@ -76,6 +76,14 @@ public class MockRpcServer {
         return new DefaultChainFacade(strategy, state);
     }
 
+    /**
+     * Generate a handy-dandy jetty server, with a JsonRpc handler, and a filter
+     * for detecting proper header configurations.
+     *
+     * @param facade instance of chainfacade to query blockchain information from
+     * @param config server config
+     * @return {@code JSON-RPC server} ready to start
+     */
     private static Server generateJettyServer(ChainFacade facade, ServerConfig config) {
         Server server = new Server(config.getPort());
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -107,15 +115,18 @@ public class MockRpcServer {
                     .forkTriggerNumber(fork.getValue().getTriggerNumber())
                     .forkPostTriggerNumber(fork.getValue().getPostTriggerNumber());
 
-            // find the intersection between a fork and transfers
-            var forkTransferEvents = intersection(
-                    config.getTransfers().entrySet(),
-                    fork.getValue().getTransfers().entrySet(),
-                    (t, f) -> t.getKey().equals(f.getKey()));
+            if (fork.getValue().getTransfers() != null) {
+                // find the intersection between a fork and transfers
+                var forkTransferEvents = intersection(
+                        config.getTransfers().entrySet(),
+                        fork.getValue().getTransfers().entrySet(),
+                        (t, f) -> t.getKey().equals(f.getKey()));
 
-            for (var i : forkTransferEvents) {
-                forkEventBuilder.forkTransferEvent(toTransferEvent(i.getX(), i.getY().getValue()));
+                for (var i : forkTransferEvents) {
+                    forkEventBuilder.forkTransferEvent(toTransferEvent(i.getX(), i.getY().getValue()));
+                }
             }
+
             forkEventMap.put(fork.getKey(), forkEventBuilder.build());
         }
         return forkEventMap;

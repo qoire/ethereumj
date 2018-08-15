@@ -76,6 +76,8 @@ public class ForkBuilderRule extends AbstractRule {
         long min = Collections.min(this.forkEvents.values(), new ForkEventStartBlockComparator()).getForkStartBlockNumber();
         long max = Collections.max(this.forkEvents.values(), new ForkEventEndBlockComparator()).getForkEndBlockNumber();
 
+        log.info("building {} forks between block number {} to {}", this.forkEvents.keySet().size(), min, max);
+
         Map<String, byte[]> parentHashes = new HashMap<>();
         for (long i = min; i < max; i++) {
             for (ForkEvent event : this.forkEvents.values()) {
