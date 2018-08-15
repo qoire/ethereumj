@@ -12,6 +12,7 @@ import org.aion.mock.eth.state.ChainState;
 import org.ethereum.core.Block;
 import org.ethereum.core.Transaction;
 import org.ethereum.core.TransactionInfo;
+import org.ethereum.core.TransactionReceipt;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.GuardedBy;
@@ -95,7 +96,8 @@ public class ForkBuilderRule extends AbstractRule {
                     }
 
                     // after this point, we calculate the TransactionInfo
-                    postConstruction(item);
+                    byte[] blockHash = postConstruction(item);
+                    parentHashes.put(event.getForkName(), blockHash);
                 }
             }
         }
@@ -130,7 +132,6 @@ public class ForkBuilderRule extends AbstractRule {
                         log.error("configuration for chain: " + f.getForkName() + " endNumber < startNumber");
                         return true;
                     }
-
                     var count = f.getForkTransferEvents().stream()
                             .filter(e -> {
                                 if (e.getBlockNumber() > f.getForkEndBlockNumber() ||
@@ -140,10 +141,7 @@ public class ForkBuilderRule extends AbstractRule {
                                 }
                                 return false;
                             }).count();
-
-                    if (count > 0)
-                        return true;
-                    return false;
+                    return count > 0;
                 }).count();
 
         if (invalidChainDefinitions > 0)
@@ -160,9 +158,11 @@ public class ForkBuilderRule extends AbstractRule {
         return builder;
     }
 
-    private void postConstruction(final BlockItem item) {
+    private byte[] postConstruction(final BlockItem item) {
         List<Transaction> transactions = item.getReceipts()
-                .stream().map(r -> r.getTransaction()).collect(Collectors.toList());
+                .stream()
+                .map(TransactionReceipt::getTransaction)
+                .collect(Collectors.toList());
 
         var txTrieRoot = BlockConstructor.calcTxTrie(transactions);
         var receiptRoot = BlockConstructor.calcReceiptsTrie(item.getReceipts());
@@ -176,6 +176,7 @@ public class ForkBuilderRule extends AbstractRule {
 
         // store into state
         applyStateUpdate(item.getBlock(), infos, item.getFork());
+        return blockHash;
     }
 
     private void applyStateUpdate(final Block block,

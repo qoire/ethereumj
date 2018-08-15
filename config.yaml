@@ -1,0 +1,35 @@
+## Ethereum Mock RPC Server Default Config
+
+# contract address of the ERC20 (who emits the event)
+contractAddress: "0x4CEdA7906a5Ed2179785Cd3A40A69ee8bc99C466"
+
+# Port number to run the mock server at
+# We assume server will always bind to localhost (127.0.0.1)
+port: 8545
+
+# normal=defaults to a static blockchain, no new items created
+# throughput=each block contains 100 random transactions
+# ticking=defaults to block 0, ticks upwards to max, no new blocks created
+mode: ["normal"]
+
+# Transfers, they are defined here and can be included into
+# various forks. Note the assumption here that nonce is not
+# accurately represented by the mock
+transfers:
+  eth0:
+    from: "0x4CEdA7906a5Ed2179785Cd3A40A69ee8bc99C466"
+    to: "0x8452c9b9140222b08593a26daa782707297be9f7b3e8281d7b4974769f19afd0"
+    amount: 1
+  eth1:
+    from: "0x4CEdA7906a5Ed2179785Cd3A40A69ee8bc99C466"
+    to: "0x8452c9b9140222b08593a26daa782707297be9f7b3e8281d7b4974769f19afd0"
+    amount: 2
+
+# define main forks, each will be trigger at the startNumber
+# and jump to the postTriggerNumber defined.
+forks:
+  main:
+    startNumber: 0
+    endNumber: 1024
+    triggerNumber: 0
+    postTriggerNumber: 0

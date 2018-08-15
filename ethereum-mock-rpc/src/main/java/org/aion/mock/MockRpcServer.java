@@ -1,6 +1,9 @@
 package org.aion.mock;
 
 import lombok.extern.slf4j.Slf4j;
+import org.aion.mock.config.ConfigLoader;
+import org.aion.mock.config.ExitCode;
+import org.aion.mock.config.ServerConfig;
 import org.aion.mock.eth.ChainFacade;
 import org.aion.mock.eth.DefaultChainFacade;
 import org.aion.mock.eth.populate.PopulationStrategy;
@@ -26,8 +29,18 @@ public class MockRpcServer {
     static final byte[] CONTRACT_ADDRESS = MockAddressGenerator.getEthereumAddress();
 
     public static void main(String[] args) {
-        ChainFacade facade = generateChainFacade();
-        Server server = generateJettyServer(facade, 8545);
+        ServerConfig config = ConfigLoader.load();
+
+        if (config == null) {
+            log.error("error loading configuration file (config.yaml)");
+            System.exit(ExitCode.CONFIG_ERR.code());
+        }
+
+        log.info("loaded config");
+        log.info(config.toString());
+
+        ChainFacade facade = generateChainFacade(config);
+        Server server = generateJettyServer(facade, config);
 
         try {
             server.start();
@@ -37,7 +50,7 @@ public class MockRpcServer {
         }
     }
 
-    private static ChainFacade generateChainFacade() {
+    private static ChainFacade generateChainFacade(ServerConfig config) {
         var state = new ChainState();
         var randomTransferGen = new RandomTransfer(100, CONTRACT_ADDRESS);
 
@@ -61,8 +74,8 @@ public class MockRpcServer {
         return new DefaultChainFacade(strategy, state);
     }
 
-    private static Server generateJettyServer(ChainFacade facade, int port) {
-        Server server = new Server(port);
+    private static Server generateJettyServer(ChainFacade facade, ServerConfig config) {
+        Server server = new Server(config.getPort());
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         context.addFilter(AddContentTypeFilter.class, "/", EnumSet.of(DispatcherType.REQUEST));

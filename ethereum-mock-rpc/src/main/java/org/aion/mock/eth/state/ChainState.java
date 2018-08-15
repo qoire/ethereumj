@@ -37,8 +37,6 @@ public class ChainState {
     public synchronized void addBlock(@Nonnull final Block block, List<TransactionInfo> infos, String fork) {
         checkBlock(block);
 
-        log.debug("block added to state: " + block.toFlatString());
-
         if (this.blockHashMap.isEmpty()) {
             chainBlockNumber = block.getNumber();
         }
