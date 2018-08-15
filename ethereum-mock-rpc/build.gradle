@@ -35,33 +35,50 @@ sourceSets {
     }
 }
 
-// Define the main class for the application
-mainClassName = 'org.aion.mock.MockRpcServer'
-
 dependencies {
+
     // This dependency is found on compile classpath of this component and consumers.
-    compile 'com.google.guava:guava:23.0'
+    implementation 'com.google.guava:guava:23.0'
 
-    compile 'javax.xml.bind:jaxb-api:2.2.11'
-    compile 'com.sun.xml.bind:jaxb-core:2.2.11'
-    compile 'com.sun.xml.bind:jaxb-impl:2.2.11'
-    compile 'javax.xml.ws:jaxws-api:2.2.11'
+    implementation 'javax.xml.bind:jaxb-api:2.2.11'
+    implementation 'com.sun.xml.bind:jaxb-core:2.2.11'
+    implementation 'com.sun.xml.bind:jaxb-impl:2.2.11'
+    implementation 'javax.xml.ws:jaxws-api:2.2.11'
 
-    compile "com.github.briandilley.jsonrpc4j:jsonrpc4j:1.5.3"
-    compile group: 'org.projectlombok', name: 'lombok', version: '1.18.2'
-    compile group: 'com.madgag.spongycastle', name: 'core', version: '1.58.0.0'
-    compile group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
+    implementation "com.github.briandilley.jsonrpc4j:jsonrpc4j:1.5.3"
+    
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.2'
+    implementation group: 'com.madgag.spongycastle', name: 'core', version: '1.58.0.0'
+    implementation group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
 
     // jetty, embedded servlet
-    compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.12.RC1'
-    compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '9.4.12.RC1'
-    compile group: 'javax.portlet', name: 'portlet-api', version: '3.0.1'
+    implementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.12.RC1'
+    implementation group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '9.4.12.RC1'
+    implementation group: 'javax.portlet', name: 'portlet-api', version: '3.0.1'
 
-    compile project(":ethereumj-core")
+    implementation project(":ethereumj-core")
 
     // Use JUnit test framework
     testCompile 'junit:junit:4.12'
 }
+
+def getGitHash = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-parse', '--short', 'HEAD'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim()
+}
+
+ext {
+    revision = getGitHash()
+}
+
+// Define the main class for the application
+mainClassName = 'org.aion.mock.MockRpcServer'
+applicationName = 'ethmockrpc'
+version = "0.0.1.${revision}"
 
 //create a single Jar with all dependencies
 task fatJar(type: Jar) {
@@ -73,6 +90,8 @@ task fatJar(type: Jar) {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
+
+build.finalizedBy(fatJar)
 
 // In this section you declare where to find the dependencies of your project
 repositories {
