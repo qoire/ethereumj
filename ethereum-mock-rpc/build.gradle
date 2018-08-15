@@ -36,7 +36,7 @@ sourceSets {
 }
 
 // Define the main class for the application
-mainClassName = 'org.aion.mock.eth.MockRpcServer'
+mainClassName = 'org.aion.mock.MockRpcServer'
 
 dependencies {
     // This dependency is found on compile classpath of this component and consumers.
@@ -61,6 +61,17 @@ dependencies {
 
     // Use JUnit test framework
     testCompile 'junit:junit:4.12'
+}
+
+//create a single Jar with all dependencies
+task fatJar(type: Jar) {
+    classifier = 'all'
+    manifest {
+        attributes 'Main-Class' : mainClassName
+        attributes 'Class-Path' : configurations.compile.collect { 'lib/' + it.getName() }.join(' ')
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
 }
 
 // In this section you declare where to find the dependencies of your project
