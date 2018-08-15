@@ -17,6 +17,8 @@ public class ChainState {
 
     private Map<Long, Map<String, Block>> blockNumberMap = new HashMap<>();
 
+    private Map<String, Long> forkMax = new HashMap<>();
+
     private Map<ByteArrayWrapper, TransactionInfo> transactionInfoMap = new HashMap<>();
 
     // swaps between different block indices, used to switch between forks
@@ -54,6 +56,11 @@ public class ChainState {
             levelForkBlockMap.put(fork, block);
         }
 
+        // add this as the max
+        if (this.forkMax.get(fork) == null || block.getNumber() > this.forkMax.get(fork)) {
+            this.forkMax.put(fork, block.getNumber());
+        }
+
         // TODO: should assert that infos match block transactions
         for (var info : infos) {
             this.transactionInfoMap.put(wrap(info.getReceipt().getTransaction().getHash()), info);
@@ -76,6 +83,10 @@ public class ChainState {
         if (blockNumber > this.headBlockNumber)
             return null;
         return this.blockNumberMap.get(blockNumber).get(this.currentFork);
+    }
+
+    public synchronized long getCurrentForkMax() {
+        return this.forkMax.get(this.currentFork);
     }
 
     public synchronized long getHeadBlockNumber() {

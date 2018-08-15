@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.NonNull;
 import lombok.Singular;
+import lombok.extern.slf4j.Slf4j;
 import org.aion.mock.eth.core.BlockConstructor;
 import org.aion.mock.eth.populate.rules.AbstractRule;
 import org.aion.mock.eth.state.ChainState;
@@ -17,12 +18,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+@Slf4j
 public class PopulationEngine extends PopulationStrategy {
 
     @Singular("transferEventList")
     private List<ExecutionUtilities.TransferEvent> transferEventList;
 
-    @Singular("specialRules")
+    @Singular
     private List<AbstractRule> specialRules;
 
 
@@ -38,6 +40,7 @@ public class PopulationEngine extends PopulationStrategy {
     @Override
     public void populateInitialInternal() {
         for (var rules : this.specialRules) {
+            log.info("rule {} initial application", rules.toString());
             rules.apply(this.state);
         }
     }

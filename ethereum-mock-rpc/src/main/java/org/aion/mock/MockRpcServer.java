@@ -13,7 +13,9 @@ import org.aion.mock.eth.populate.PopulationEngine;
 import org.aion.mock.eth.populate.base.ForkEvent;
 import org.aion.mock.eth.populate.pipeline.RandomTransfer;
 import org.aion.mock.eth.populate.pipeline.UserTransfer;
+import org.aion.mock.eth.populate.rules.AbstractRule;
 import org.aion.mock.eth.populate.rules.ForkBuilderRule;
+import org.aion.mock.eth.populate.rules.TickRule;
 import org.aion.mock.eth.state.ChainState;
 import org.aion.mock.rpc.AddContentTypeFilter;
 import org.aion.mock.rpc.HttpJsonRpcServlet;
@@ -64,10 +66,18 @@ public class MockRpcServer {
         // generate all fork events
         var forkEvents = generateForkEvents(config);
 
+        List<AbstractRule> rules = new ArrayList<>();
+
         // generate a default fork event
         var forkBuilder = new ForkBuilderRule(state, forkEvents);
         // attach UserTransfer pipeline element (for generating transfers)
         forkBuilder.attach(new UserTransfer(config.getContractAddressBytes(), forkEvents));
+
+        // add forkBuilder rule (always necessary)
+        rules.add(forkBuilder);
+
+        if (config.getMode().contains("ticking"))
+            rules.add(new TickRule(14, config.getForks().get("main").getStartNumber()));
 
         if (config.getMode().contains("throughput"))
             // attach random transaction generation element
@@ -75,7 +85,7 @@ public class MockRpcServer {
 
         PopulationStrategy strategy = PopulationEngine.builder()
                 .state(state)
-                .specialRules(Collections.singletonList(forkBuilder))
+                .specialRules(rules)
                 .build();
         return new DefaultChainFacade(strategy, state);
     }

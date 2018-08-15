@@ -10,7 +10,7 @@ port: 8545
 # normal=defaults to a static blockchain, no new items created
 # throughput=each block contains 100 random transactions
 # ticking=defaults to block 0, ticks upwards to max, no new blocks created
-mode: ["syncing"]
+mode: ["ticking"]
 
 # Transfers, they are defined here and can be included into
 # various forks. Note the assumption here that nonce is not
