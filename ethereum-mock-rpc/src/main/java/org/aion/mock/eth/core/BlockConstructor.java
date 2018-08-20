@@ -101,7 +101,7 @@ public class BlockConstructor {
         for (var r : receipts) {
             receiptBloom.or(r.getBloomFilter());
         }
-        
+
         this.block = new Block(
                 parentHash,
                 unclesHash,
@@ -121,7 +121,6 @@ public class BlockConstructor {
                 transactions,
                 uncleList
         );
-
         return this.block;
     }
 

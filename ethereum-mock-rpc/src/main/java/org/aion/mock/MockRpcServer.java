@@ -63,7 +63,9 @@ public class MockRpcServer {
 
     private static ChainFacade generateChainFacade(ServerConfig config) {
         var state = new ChainState();
-        var randomTransferGen = new RandomTransfer(200, config.getContractAddressBytes());
+
+        var randomTransferGen = new RandomTransfer(config.getThroughput(),
+                config.getContractAddressBytes());
 
         // generate all fork events
         var forkEvents = generateForkEvents(config);
@@ -78,12 +80,14 @@ public class MockRpcServer {
         // add forkBuilder rule (always necessary)
         rules.add(forkBuilder);
 
-        if (config.getMode().contains("ticking"))
+        if (config.getMode().contains("ticking")) {
             rules.add(new TickRule(config.getBlockTime(), config.getForks().get("main").getStartNumber()));
+        }
 
-        if (config.getMode().contains("throughput"))
+        if (config.getMode().contains("throughput")) {
             // attach random transaction generation element
             forkBuilder.attach(randomTransferGen);
+        }
 
         PopulationStrategy strategy = PopulationEngine.builder()
                 .state(state)

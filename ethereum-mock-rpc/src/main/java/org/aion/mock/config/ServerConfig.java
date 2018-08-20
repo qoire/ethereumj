@@ -27,6 +27,8 @@ public class ServerConfig {
 
     public int blockTime;
 
+    public int throughput;
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
