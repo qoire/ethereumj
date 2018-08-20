@@ -25,6 +25,8 @@ public class ServerConfig {
 
     public List<String> mode;
 
+    public int blockTime;
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

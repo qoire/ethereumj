@@ -101,11 +101,7 @@ public class BlockConstructor {
         for (var r : receipts) {
             receiptBloom.or(r.getBloomFilter());
         }
-
-        if (this.number == 1) {
-            System.out.println("sure");
-        }
-
+        
         this.block = new Block(
                 parentHash,
                 unclesHash,

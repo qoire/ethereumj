@@ -3,6 +3,7 @@ package org.aion.mock.eth.populate.rules;
 import com.google.common.base.Stopwatch;
 import lombok.extern.slf4j.Slf4j;
 import org.aion.mock.eth.state.ChainState;
+import org.ethereum.util.ByteUtil;
 
 /**
  * Ticks until we reach the chain head
@@ -40,7 +41,7 @@ public class TickRule extends AbstractRule {
             state.setHeadBlockNumber(newNum);
             if (newNum > current) {
                 // helpful log for the user
-                log.info("applied tick, new HEAD block number {}, hash {}", newNum, state.getBlock(newNum).getHash());
+                log.info("applied tick, new HEAD block number {}, hash {}", newNum, ByteUtil.toHexString(state.getBlock(newNum).getHash()));
             }
         }
     }

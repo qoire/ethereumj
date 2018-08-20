@@ -51,7 +51,7 @@ public class MockRpcServer {
         ChainFacade facade = generateChainFacade(config);
         Server server = generateJettyServer(facade, config);
 
-        log.info("first blockHash: " + ByteUtil.toHexString(facade.getBlockByNumber(0).getHash()));
+        log.info("best blockHash: " + ByteUtil.toHexString(facade.getBestBlock().getHash()));
 
         try {
             server.start();
@@ -63,7 +63,7 @@ public class MockRpcServer {
 
     private static ChainFacade generateChainFacade(ServerConfig config) {
         var state = new ChainState();
-        var randomTransferGen = new RandomTransfer(100, config.getContractAddressBytes());
+        var randomTransferGen = new RandomTransfer(200, config.getContractAddressBytes());
 
         // generate all fork events
         var forkEvents = generateForkEvents(config);
@@ -79,7 +79,7 @@ public class MockRpcServer {
         rules.add(forkBuilder);
 
         if (config.getMode().contains("ticking"))
-            rules.add(new TickRule(1, config.getForks().get("main").getStartNumber()));
+            rules.add(new TickRule(config.getBlockTime(), config.getForks().get("main").getStartNumber()));
 
         if (config.getMode().contains("throughput"))
             // attach random transaction generation element

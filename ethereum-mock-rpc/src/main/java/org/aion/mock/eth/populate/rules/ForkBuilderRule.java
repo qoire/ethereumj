@@ -112,7 +112,7 @@ public class ForkBuilderRule extends AbstractRule {
 
     @Override
     public void applyStep(ChainState state) {
-
+        
     }
 
     @GuardedBy("this")
