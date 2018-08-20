@@ -97,11 +97,20 @@ public class BlockConstructor {
                 .collect(Collectors.toList());
         final var txReceiptRoot = calcReceiptsTrie(receipts);
 
+        final var receiptBloom = new Bloom();
+        for (var r : receipts) {
+            receiptBloom.or(r.getBloomFilter());
+        }
+
+        if (this.number == 1) {
+            System.out.println("sure");
+        }
+
         this.block = new Block(
                 parentHash,
                 unclesHash,
                 coinbase,
-                logsBloom,
+                receiptBloom.getData(),
                 difficulty,
                 number,
                 gasLimit,

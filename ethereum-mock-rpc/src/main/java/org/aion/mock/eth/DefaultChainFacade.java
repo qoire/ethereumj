@@ -42,6 +42,7 @@ public class DefaultChainFacade implements ChainFacade {
 
     @Override
     public TransactionReceipt getTransactionReceiptByHash(byte[] transactionHash) {
+        this.strategy.populateStep(new Properties());
         var info = this.chainState.getTransactionInfo(transactionHash);
         if (info == null) return null;
         return info.getReceipt();
@@ -49,16 +50,19 @@ public class DefaultChainFacade implements ChainFacade {
 
     @Override
     public TransactionInfo getTransactionInfo(byte[] transactionHash) {
+        this.strategy.populateStep(new Properties());
         return this.chainState.getTransactionInfo(transactionHash);
     }
 
     @Override
     public long getBlockNumber() {
+        this.strategy.populateStep(new Properties());
         return this.chainState.getHeadBlockNumber();
     }
 
     @Override
     public Block getBestBlock() {
+        this.strategy.populateStep(new Properties());
         return this.chainState.getBlock(this.chainState.getHeadBlockNumber());
     }
 }

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.aion.mock.eth.core.BlockConstructor;
 import org.aion.mock.eth.populate.ExecutionUtilities;
 import org.aion.util.MockAddressGenerator;
+import org.ethereum.core.Bloom;
 import org.ethereum.core.TransactionInfo;
 import org.ethereum.core.TransactionReceipt;
 
@@ -55,11 +56,14 @@ public class RandomTransfer implements BlockPipelineElement {
         var transactions = receipts.stream().map(TransactionReceipt::getTransaction).collect(Collectors.toList());
         var txTrie = BlockConstructor.calcTxTrie(transactions);
 
-        // update the block contents to grab new hash
-        item.getBlock().updateTransactionContents(transactions, txTrie, receiptsTrie);
-        byte[] newHash = item.getBlock().getHash();
-        item.getReceipts().addAll(newReceipts);
+        final var bloom = new Bloom();
+        for (var r : receipts) {
+            bloom.or(r.getBloomFilter());
+        }
 
+        // update the block contents to grab new hash
+        item.getBlock().updateTransactionContents(transactions, txTrie, receiptsTrie, bloom.getData());
+        item.getReceipts().addAll(newReceipts);
         return item;
     }
 }

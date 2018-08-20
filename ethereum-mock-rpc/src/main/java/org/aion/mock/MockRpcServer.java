@@ -51,6 +51,8 @@ public class MockRpcServer {
         ChainFacade facade = generateChainFacade(config);
         Server server = generateJettyServer(facade, config);
 
+        log.info("first blockHash: " + ByteUtil.toHexString(facade.getBlockByNumber(0).getHash()));
+
         try {
             server.start();
             server.join();
@@ -77,7 +79,7 @@ public class MockRpcServer {
         rules.add(forkBuilder);
 
         if (config.getMode().contains("ticking"))
-            rules.add(new TickRule(14, config.getForks().get("main").getStartNumber()));
+            rules.add(new TickRule(1, config.getForks().get("main").getStartNumber()));
 
         if (config.getMode().contains("throughput"))
             // attach random transaction generation element

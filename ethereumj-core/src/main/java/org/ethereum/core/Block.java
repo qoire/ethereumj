@@ -163,10 +163,14 @@ public class Block {
         this.parsed = true;
     }
 
-    public void updateTransactionContents(List<Transaction> transactionsList, byte[] txTrieRoot, byte[] txReceiptRoot) {
+    public void updateTransactionContents(List<Transaction> transactionsList,
+                                          byte[] txTrieRoot,
+                                          byte[] txReceiptRoot,
+                                          byte[] logsBloom) {
         this.transactionsList = transactionsList;
         this.header.setTransactionsRoot(txTrieRoot);
         this.header.setReceiptsRoot(txReceiptRoot);
+        this.header.setLogsBloom(logsBloom);
     }
 
     public BlockHeader getHeader() {

@@ -3,6 +3,7 @@ package org.aion.mock.eth.populate.pipeline;
 import org.aion.mock.eth.core.BlockConstructor;
 import org.aion.mock.eth.populate.ExecutionUtilities;
 import org.aion.mock.eth.populate.base.ForkEvent;
+import org.ethereum.core.Bloom;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -74,10 +75,16 @@ public class UserTransfer implements BlockPipelineElement {
                 .map(ExecutionUtilities.PostTransactionExecution::getReceipt)
                 .collect(Collectors.toList()));
 
+        final var bloom = new Bloom();
+        for (var r : item.getReceipts()) {
+            bloom.or(r.getBloomFilter());
+        }
+
         // update transactions
         item.getBlock().updateTransactionContents(item.getBlock().getTransactionsList(),
                 BlockConstructor.calcTxTrie(item.getBlock().getTransactionsList()),
-                BlockConstructor.calcReceiptsTrie(item.getReceipts()));
+                BlockConstructor.calcReceiptsTrie(item.getReceipts()),
+                bloom.getData());
 
         return item;
     }

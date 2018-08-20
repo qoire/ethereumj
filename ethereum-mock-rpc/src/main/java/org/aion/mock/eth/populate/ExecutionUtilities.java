@@ -4,6 +4,7 @@ import lombok.Data;
 import org.aion.mock.eth.core.MockTransaction;
 import org.ethereum.core.Transaction;
 import org.ethereum.core.TransactionReceipt;
+import org.ethereum.crypto.HashUtil;
 import org.ethereum.vm.DataWord;
 import org.ethereum.vm.LogInfo;
 
@@ -63,7 +64,9 @@ public class ExecutionUtilities {
         for (var event : events) {
             LogInfo log = new LogInfo(
                     contractAddress,
-                    Arrays.asList(new DataWord(transaction.getSender()),
+                    Arrays.asList(
+                                  new DataWord(HashUtil.sha3("Burn(address,bytes32,uint256)".getBytes())),
+                                  new DataWord(transaction.getSender()),
                                   new DataWord(event.recipient)),
                     new DataWord(event.amount.toByteArray()).getData());
             logs.add(log);

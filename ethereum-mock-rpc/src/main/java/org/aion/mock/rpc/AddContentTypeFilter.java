@@ -53,16 +53,6 @@ public class AddContentTypeFilter implements Filter {
             if ("/".equals(httpRequest.getRequestURI())) {
                 log.info("Found " + httpRequest.getRequestURI());
 
-                if (isNullOrIncorrect(httpRequest.getHeader("content-type"), "application/json")) {
-                    log.debug("invalid content-type: " + httpRequest.getHeader("content-type"));
-                    return;
-                }
-
-                if (isNullOrIncorrect("accept", "application/json")) {
-                    log.debug("invalid accept type: " + httpRequest.getHeader("accept"));
-                    return;
-                }
-
                 AddParamsToHeader updatedRequest = new AddParamsToHeader((HttpServletRequest) request);
                 httpResponse.addHeader("content-type", "application/json");
                 httpResponse.addHeader("accept", "application/json");

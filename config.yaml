@@ -1,7 +1,7 @@
 ## Ethereum Mock RPC Server Default Config
 
 # contract address of the ERC20 (who emits the event)
-contractAddress: "0x4CEdA7906a5Ed2179785Cd3A40A69ee8bc99C466"
+contractAddress: "0xcBfdd386EB496cd49feE0fA344087C8B39c95b91"
 
 # Port number to run the mock server at
 # We assume server will always bind to localhost (127.0.0.1)
@@ -30,6 +30,8 @@ transfers:
 forks:
   main:
     startNumber: 0
-    endNumber: 1024
+    endNumber: 2048
     triggerNumber: 0
     postTriggerNumber: 0
+    transfers:
+      eth0: 1

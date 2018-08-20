@@ -10,10 +10,7 @@ import org.aion.mock.eth.populate.base.ForkEvent;
 import org.aion.mock.eth.populate.pipeline.BlockItem;
 import org.aion.mock.eth.populate.pipeline.BlockPipelineElement;
 import org.aion.mock.eth.state.ChainState;
-import org.ethereum.core.Block;
-import org.ethereum.core.Transaction;
-import org.ethereum.core.TransactionInfo;
-import org.ethereum.core.TransactionReceipt;
+import org.ethereum.core.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.GuardedBy;
@@ -105,6 +102,7 @@ public class ForkBuilderRule extends AbstractRule {
                 }
             }
         }
+        this.state.setCurrentFork("main");
     }
 
     @GuardedBy("this")
@@ -172,7 +170,13 @@ public class ForkBuilderRule extends AbstractRule {
 
         var txTrieRoot = BlockConstructor.calcTxTrie(transactions);
         var receiptRoot = BlockConstructor.calcReceiptsTrie(item.getReceipts());
-        item.getBlock().updateTransactionContents(transactions, txTrieRoot, receiptRoot);
+
+        final var bloom = new Bloom();
+        for (var r : item.getReceipts()) {
+            bloom.or(r.getBloomFilter());
+        }
+
+        item.getBlock().updateTransactionContents(transactions, txTrieRoot, receiptRoot, bloom.getData());
         var blockHash = item.getBlock().getHash();
 
         List<TransactionInfo> infos = item.getReceipts()

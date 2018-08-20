@@ -77,12 +77,7 @@ public class TransactionReceiptDTO {
         }
         logsBloom = toJsonHex(receipt.getBloomFilter().getData());
 
-        if (receipt.hasTxStatus()) { // post Byzantium
-            root = null;
-            status = receipt.isTxStatusOK() ? "0x1" : "0x0";
-        } else { // pre Byzantium
-            root = toJsonHex(receipt.getPostTxState());
-            status = null;
-        }
+        root = toJsonHex(receipt.getPostTxState());
+        status = receipt.isSuccessful() ? "0x1" : "0x0";
     }
 }

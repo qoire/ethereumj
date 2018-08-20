@@ -36,13 +36,6 @@ public class TickRule extends AbstractRule {
             var current = state.getHeadBlockNumber();
             var forkMaxBlockNumber = state.getCurrentForkMax();
 
-            /*
-             * This is a case we hit if we are currently on a chain that has "ended", but do not switch
-             * (since that is done manually). In this case, we effectively have to tread the current head
-             * as the head. Assuming this is the only process that "ticks".
-             */
-            if (state.getBlock(current + 1) == null)
-                return;
             var newNum = Math.min((this.watch.elapsed().getSeconds() / this.blockTime) + startingBlockNumber, forkMaxBlockNumber);
             state.setHeadBlockNumber(newNum);
             if (newNum > current) {

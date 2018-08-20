@@ -241,7 +241,7 @@ public class EthJsonRpcImpl implements JsonRpc {
     protected BlockResult getBlockResult(Block block, boolean fullTx) {
         if (block==null)
             return null;
-        boolean isPending = ByteUtil.byteArrayToLong(block.getNonce()) == 0;
+        boolean isPending = false;
         BlockResult br = new BlockResult();
         br.number = isPending ? null : toJsonHex(block.getNumber());
         br.hash = isPending ? null : toJsonHex(block.getHash());
