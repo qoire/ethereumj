@@ -71,22 +71,22 @@ public class MockRpcServer {
 
         List<AbstractRule> rules = new ArrayList<>();
 
+        if (config.getMode().contains("ticking")) {
+            rules.add(new TickRule(config.getBlockTime(), config.getForks().get("main").getStartNumber()));
+        }
+
         // generate a default fork event
         var forkBuilder = new ForkBuilderRule(state, forkEvents);
         // attach UserTransfer pipeline element (for generating transfers)
         forkBuilder.attach(new UserTransfer(config.getContractAddressBytes(), forkEvents));
 
-        // add forkBuilder rule (always necessary)
-        rules.add(forkBuilder);
-
-        if (config.getMode().contains("ticking")) {
-            rules.add(new TickRule(config.getBlockTime(), config.getForks().get("main").getStartNumber()));
-        }
-
         if (config.getMode().contains("throughput")) {
             // attach random transaction generation element
             forkBuilder.attach(randomTransferGen);
         }
+
+        // add forkBuilder rule (always necessary)
+        rules.add(forkBuilder);
 
         PopulationStrategy strategy = PopulationEngine.builder()
                 .state(state)

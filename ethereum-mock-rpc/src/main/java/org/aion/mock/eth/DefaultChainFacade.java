@@ -71,11 +71,23 @@ public class DefaultChainFacade implements ChainFacade {
 
     @Override
     public Block getBestBlock() {
+        var headBlockNumber = this.chainState.getHeadBlockNumber();
+
+        if (headBlockNumber == 2) {
+            System.out.println("hello world");
+        }
+
         var props = new Properties();
         props.setProperty("getBestBlock", "");
-        props.setProperty("number", Long.toString(this.chainState.getHeadBlockNumber()));
+        props.setProperty("number", Long.toString(headBlockNumber));
+
+        // this is in the case where our post-trigger number is _lower_
+        // than our current number
+        if (this.chainState.getHeadBlockNumber() < headBlockNumber) {
+            headBlockNumber = this.chainState.getHeadBlockNumber();
+        }
 
         this.strategy.populateStep(props);
-        return this.chainState.getBlock(this.chainState.getHeadBlockNumber());
+        return this.chainState.getBlock(headBlockNumber);
     }
 }

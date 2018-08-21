@@ -38,7 +38,7 @@ forks:
     transfers:
       eth0: 1
   fork1:
-    startNumber: 1
+    startNumber: 0
     endNumber: 512
     triggerNumber: 2
     postTriggerNumber: 1

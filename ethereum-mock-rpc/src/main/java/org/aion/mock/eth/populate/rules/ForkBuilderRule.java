@@ -54,36 +54,6 @@ public class ForkBuilderRule extends AbstractRule {
     @GuardedBy("this")
     private void checkDuplicates() {
         {
-            final List<Long> duplicates = this.forkEvents.values()
-                    .stream().map(ForkEvent::getForkStartBlockNumber)
-                    .collect(Collectors.toList());
-            duplicates.sort(Long::compareTo);
-
-            var lastValue = -1l;
-            for (var l : duplicates) {
-                if (lastValue == l) {
-                    throw new RuntimeException("found duplicate fork start block number");
-                }
-                lastValue = l;
-            }
-        }
-
-        {
-            List<Long> duplicates = this.forkEvents.values()
-                    .stream().map(ForkEvent::getForkEndBlockNumber)
-                    .collect(Collectors.toList());
-            duplicates.sort(Long::compareTo);
-
-            var lastValue = -1l;
-            for (var l : duplicates) {
-                if (lastValue == l) {
-                    throw new RuntimeException("found duplicate fork end block number");
-                }
-                lastValue = l;
-            }
-        }
-
-        {
             List<Long> duplicates = this.forkEvents.values()
                     .stream().map(ForkEvent::getForkTriggerNumber)
                     .collect(Collectors.toList());
