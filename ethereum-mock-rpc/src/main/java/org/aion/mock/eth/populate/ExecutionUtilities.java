@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.aion.util.MockAddressGenerator.getEthereumAddress;
+import static org.aion.util.DeterministicRandomGenerator.getEthereumAddress;
 
 public class ExecutionUtilities {
 

@@ -6,6 +6,7 @@ import org.ethereum.core.Block;
 import org.ethereum.core.TransactionInfo;
 
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Define rule as an action on a blockchain, rules are applied
@@ -18,5 +19,5 @@ public abstract class AbstractRule {
 
     public abstract void apply(ChainState state);
 
-    public abstract void applyStep(ChainState state);
+    public abstract void applyStep(ChainState state, Properties props);
 }

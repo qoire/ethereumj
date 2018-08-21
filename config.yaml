@@ -32,8 +32,15 @@ transfers:
 forks:
   main:
     startNumber: 0
-    endNumber: 2048
+    endNumber: 256
     triggerNumber: 0
     postTriggerNumber: 0
+    transfers:
+      eth0: 1
+  fork1:
+    startNumber: 1
+    endNumber: 512
+    triggerNumber: 2
+    postTriggerNumber: 1
     transfers:
       eth0: 1

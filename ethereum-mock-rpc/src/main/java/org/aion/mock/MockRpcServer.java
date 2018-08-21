@@ -19,8 +19,7 @@ import org.aion.mock.eth.populate.rules.TickRule;
 import org.aion.mock.eth.state.ChainState;
 import org.aion.mock.rpc.AddContentTypeFilter;
 import org.aion.mock.rpc.HttpJsonRpcServlet;
-import org.aion.util.CollectionsUtility;
-import org.aion.util.MockAddressGenerator;
+import org.aion.util.DeterministicRandomGenerator;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -35,7 +34,7 @@ import java.util.*;
 public class MockRpcServer {
 
     // some invariants for now, needs to change into config file parameters later
-    static final byte[] CONTRACT_ADDRESS = MockAddressGenerator.getEthereumAddress();
+    static final byte[] CONTRACT_ADDRESS = DeterministicRandomGenerator.getEthereumAddress();
 
     public static void main(String[] args) {
         ServerConfig config = ConfigLoader.load();

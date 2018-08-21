@@ -49,7 +49,7 @@ public class PopulationEngine extends PopulationStrategy {
     public void populateStep(Properties props) {
         // by default, the strategy does not have any default behaviour
         for (AbstractRule rule : specialRules) {
-            rule.applyStep(this.state);
+            rule.applyStep(this.state, props);
         }
     }
 }

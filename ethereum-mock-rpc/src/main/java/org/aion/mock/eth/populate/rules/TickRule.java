@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.aion.mock.eth.state.ChainState;
 import org.ethereum.util.ByteUtil;
 
+import java.util.Properties;
+
 /**
  * Ticks until we reach the chain head
  */
@@ -32,7 +34,7 @@ public class TickRule extends AbstractRule {
     }
 
     @Override
-    public void applyStep(ChainState state) {
+    public void applyStep(ChainState state, Properties props) {
         synchronized (state) {
             var current = state.getHeadBlockNumber();
             var forkMaxBlockNumber = state.getCurrentForkMax();

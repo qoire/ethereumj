@@ -3,9 +3,8 @@ package org.aion.mock.eth.populate.pipeline;
 import lombok.AllArgsConstructor;
 import org.aion.mock.eth.core.BlockConstructor;
 import org.aion.mock.eth.populate.ExecutionUtilities;
-import org.aion.util.MockAddressGenerator;
+import org.aion.util.DeterministicRandomGenerator;
 import org.ethereum.core.Bloom;
-import org.ethereum.core.TransactionInfo;
 import org.ethereum.core.TransactionReceipt;
 
 import java.math.BigInteger;
@@ -29,14 +28,14 @@ public class RandomTransfer implements BlockPipelineElement {
         List<TransactionReceipt> receipts = item.getReceipts();
         List<TransactionReceipt> newReceipts = new ArrayList<>();
         for (int i = 0; i < amount - receipts.size(); i++) {
-            byte[] ethereumSenderAddress = MockAddressGenerator.getEthereumAddress();
-            byte[] ethereumDestinationAddress = MockAddressGenerator.getEthereumAddress();
-            byte[] aionRecipientAddress = MockAddressGenerator.getAionAddress();
+            byte[] ethereumSenderAddress = DeterministicRandomGenerator.getEthereumAddress();
+            byte[] ethereumDestinationAddress = DeterministicRandomGenerator.getEthereumAddress();
+            byte[] aionRecipientAddress = DeterministicRandomGenerator.getAionAddress();
 
             // pseudo execute the transactions
             ExecutionUtilities.TransferEvent event = new ExecutionUtilities.TransferEvent(
                     "random" + i,
-                    MockAddressGenerator.getEthereumAddress(),
+                    DeterministicRandomGenerator.getEthereumAddress(),
                     aionRecipientAddress,
                     BigInteger.ONE,
                     item.getBlock().getNumber());

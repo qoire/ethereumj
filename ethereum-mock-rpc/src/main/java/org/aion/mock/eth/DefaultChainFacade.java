@@ -6,6 +6,7 @@ import org.ethereum.core.Block;
 import org.ethereum.core.Transaction;
 import org.ethereum.core.TransactionInfo;
 import org.ethereum.core.TransactionReceipt;
+import org.ethereum.util.ByteUtil;
 
 import java.util.Properties;
 
@@ -22,14 +23,19 @@ public class DefaultChainFacade implements ChainFacade {
 
     @Override
     public Block getBlockByNumber(long number) {
-        Properties props = new Properties();
-        props.put("number", number);
+        var props = new Properties();
+        props.setProperty("getBlockByNumber", "");
+        props.setProperty("number", Long.toString(number));
         this.strategy.populateStep(props);
         return this.chainState.getBlock(number);
     }
 
     @Override
     public Block getBlockByHash(byte[] blockHash) {
+        var props = new Properties();
+        props.setProperty("getBlockByHash", "");
+        props.setProperty("hash", ByteUtil.toHexString(blockHash));
+        this.strategy.populateStep(props);
         return this.chainState.getBlock(blockHash);
     }
 
@@ -56,13 +62,20 @@ public class DefaultChainFacade implements ChainFacade {
 
     @Override
     public long getBlockNumber() {
-        this.strategy.populateStep(new Properties());
+        var props = new Properties();
+        props.setProperty("getBlockNumber", "");
+
+        this.strategy.populateStep(props);
         return this.chainState.getHeadBlockNumber();
     }
 
     @Override
     public Block getBestBlock() {
-        this.strategy.populateStep(new Properties());
+        var props = new Properties();
+        props.setProperty("getBestBlock", "");
+        props.setProperty("number", Long.toString(this.chainState.getHeadBlockNumber()));
+
+        this.strategy.populateStep(props);
         return this.chainState.getBlock(this.chainState.getHeadBlockNumber());
     }
 }
