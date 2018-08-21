@@ -1,6 +1,5 @@
 package org.aion.mock.eth.populate;
 
-import lombok.Builder;
 import org.aion.mock.eth.state.ChainState;
 
 import java.util.Properties;

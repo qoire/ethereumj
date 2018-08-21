@@ -1,11 +1,7 @@
 package org.aion.mock.eth.populate.rules;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.aion.mock.eth.core.BlockConstructor;
-import org.aion.mock.eth.populate.ExecutionUtilities;
 import org.aion.mock.eth.populate.base.ForkEvent;
 import org.aion.mock.eth.populate.pipeline.BlockItem;
 import org.aion.mock.eth.populate.pipeline.BlockPipelineElement;
@@ -34,13 +30,47 @@ public class ForkBuilderRule extends AbstractRule {
     private List<BlockPipelineElement> bpe = new ArrayList<>();
 
     @GuardedBy("this")
-    private Map<String, ForkEvent> forkEvents;
+    private final Map<String, ForkEvent> forkEvents;
 
-    private ChainState state;
+    private final ChainState state;
 
     public ForkBuilderRule(ChainState state, Map<String, ForkEvent> forkEvents) {
         this.state = state;
         this.forkEvents = forkEvents;
+
+    }
+
+    @GuardedBy("this")
+    public void checkDuplicates() {
+        {
+            final List<Long> duplicates = this.forkEvents.values()
+                    .stream().map(ForkEvent::getForkStartBlockNumber)
+                    .collect(Collectors.toList());
+            duplicates.sort(Long::compareTo);
+
+            var lastValue = -1l;
+            for (var l : duplicates) {
+                if (lastValue == l) {
+                    throw new RuntimeException("found duplicate fork start block number");
+                }
+                lastValue = l;
+            }
+        }
+
+        {
+            List<Long> duplicates = this.forkEvents.values()
+                    .stream().map(ForkEvent::getForkEndBlockNumber)
+                    .collect(Collectors.toList());
+            duplicates.sort(Long::compareTo);
+
+            var lastValue = -1l;
+            for (var l : duplicates) {
+                if (lastValue == l) {
+                    throw new RuntimeException("found duplicate fork start block number");
+                }
+                lastValue = l;
+            }
+        }
     }
 
     /**
@@ -110,9 +140,39 @@ public class ForkBuilderRule extends AbstractRule {
         return i >= event.getForkStartBlockNumber() && i <= event.getForkEndBlockNumber();
     }
 
+    /**
+     * The other responsibility for handling forks is actually forking when the
+     * current block number matches a certain criteria.
+     *
+     * @param state
+     */
     @Override
     public void applyStep(ChainState state) {
-        
+        long currentBlockNumber = this.state.getChainBlockNumber();
+
+        List<Map.Entry<String, ForkEvent>> out = this.forkEvents.entrySet().stream()
+                .filter(e -> currentBlockNumber == e.getValue().getForkTriggerNumber())
+                .collect(Collectors.toList());
+
+        if (out.size() > 1) {
+            // this should never happen
+            throw new RuntimeException("panic, found two forks starting at same block number");
+        }
+
+        if (out.isEmpty()) {
+            log.debug("no trigger event at this block number");
+            return;
+        }
+
+        String nextForkName = out.get(0).getKey();
+        ForkEvent nextForkEvent = out.get(0).getValue();
+        // otherwise, apply the fork event
+        log.debug("applying fork rule, forks {} => {}, curr => {}, forkRange => [{},{}]",
+                this.state.getCurrentFork(),
+                nextForkName,
+                currentBlockNumber,
+                nextForkEvent.getForkStartBlockNumber(),
+                nextForkEvent.getForkEndBlockNumber());
     }
 
     @GuardedBy("this")
